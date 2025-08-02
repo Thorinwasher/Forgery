@@ -45,7 +45,7 @@ public class ForgeryStructure {
         this.entryPoints = origins;
         this.name = Objects.requireNonNull(name);
         this.structureMeta = Objects.requireNonNull(structureMeta);
-        ForgeryStructureType type = getMeta(StructureMeta.TYPE);
+        ForgeryStructureType type = metaValue(StructureMeta.TYPE);
         Preconditions.checkArgument(type != null, "Invalid structure '" + name + "', missing meta: " + StructureMeta.TYPE);
     }
 
@@ -110,12 +110,8 @@ public class ForgeryStructure {
         return Arrays.asList(schem.palette());
     }
 
-    public <V> @Nullable V getMeta(StructureMeta<V> meta) {
+    public <V> @Nullable V metaValue(StructureMeta<V> meta) {
         return (V) structureMeta.get(meta);
-    }
-
-    public <V> V getMetaOrDefault(StructureMeta<V> meta, V defaultValue) {
-        return (V) structureMeta.getOrDefault(meta, defaultValue);
     }
 
     public String getName() {

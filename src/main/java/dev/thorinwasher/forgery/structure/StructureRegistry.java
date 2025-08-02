@@ -26,9 +26,9 @@ public class StructureRegistry {
     public void addStructure(@NotNull ForgeryStructure structure) {
         Preconditions.checkNotNull(structure);
         structureNames.put(structure.getName(), structure);
-        structures.computeIfAbsent(structure.getMeta(StructureMeta.TYPE), ignored -> new HashSet<>()).add(structure);
+        structures.computeIfAbsent(structure.metaValue(StructureMeta.TYPE), ignored -> new HashSet<>()).add(structure);
         for (BlockData blockData : structure.getPalette()) {
-            structuresWithMaterials.computeIfAbsent(structure.getMeta(StructureMeta.TYPE), ignored -> new HashMap<>())
+            structuresWithMaterials.computeIfAbsent(structure.metaValue(StructureMeta.TYPE), ignored -> new HashMap<>())
                     .computeIfAbsent(blockData.getMaterial(), ignored -> new HashSet<>()).add(structure);
         }
     }

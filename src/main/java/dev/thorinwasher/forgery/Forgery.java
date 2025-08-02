@@ -1,6 +1,8 @@
 package dev.thorinwasher.forgery;
 
+import dev.thorinwasher.forgery.database.Database;
 import dev.thorinwasher.forgery.listener.BlockEventListener;
+import dev.thorinwasher.forgery.listener.PlayerEventListener;
 import dev.thorinwasher.forgery.structure.PlacedStructureRegistry;
 import dev.thorinwasher.forgery.structure.StructureReadException;
 import dev.thorinwasher.forgery.structure.StructureReader;
@@ -17,12 +19,20 @@ public class Forgery extends JavaPlugin {
     private StructureRegistry structureRegistry;
     private static Forgery instance;
     private PlacedStructureRegistry placedStructureRegistry;
+    private Database database;
 
     @Override
     public void onEnable() {
         instance = this;
         this.structureRegistry = new StructureRegistry();
         this.placedStructureRegistry = new PlacedStructureRegistry();
+        this.database = new Database();
+        loadStructures();
+        Bukkit.getPluginManager().registerEvents(new BlockEventListener(placedStructureRegistry, structureRegistry, database), this);
+        Bukkit.getPluginManager().registerEvents(new PlayerEventListener(placedStructureRegistry), this);
+    }
+
+    private void loadStructures() {
         Stream.of("blast_furnace")
                 .map(string -> "structures/" + string)
                 .flatMap(name -> Stream.of(name + ".schem", name + ".json"))
@@ -40,7 +50,6 @@ public class Forgery extends JavaPlugin {
                     }
                 })
                 .forEach(structureRegistry::addStructure);
-        Bukkit.getPluginManager().registerEvents(new BlockEventListener(placedStructureRegistry, structureRegistry), this);
     }
 
     private void saveResourceIfNotExists(String resource) {
@@ -52,13 +61,5 @@ public class Forgery extends JavaPlugin {
 
     public static Forgery instance() {
         return instance;
-    }
-
-    public StructureRegistry structureRegistry() {
-        return structureRegistry;
-    }
-
-    public PlacedStructureRegistry placedStructureRegistry() {
-        return placedStructureRegistry;
     }
 }

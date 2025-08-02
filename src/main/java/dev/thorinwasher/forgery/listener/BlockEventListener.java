@@ -17,7 +17,8 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import java.util.Optional;
 
 public record BlockEventListener(PlacedStructureRegistry placedStructureRegistry,
-                                 StructureRegistry structureRegistry) implements Listener {
+                                 StructureRegistry structureRegistry,
+                                 dev.thorinwasher.forgery.database.Database database) implements Listener {
 
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)

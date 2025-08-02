@@ -3,6 +3,7 @@ package dev.thorinwasher.forgery.structure;
 import dev.thorinwasher.forgery.forgeries.StructureHolder;
 import dev.thorinwasher.forgery.vector.BlockLocation;
 import org.bukkit.Location;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3d;
 
 import java.util.ArrayList;
@@ -55,6 +56,11 @@ public class PlacedForgeryStructure<H extends StructureHolder<H>> implements Mul
     @Override
     public BlockLocation unique() {
         return unique;
+    }
+
+    @Override
+    public <V> @Nullable V metaValue(StructureMeta<V> meta) {
+        return structure.metaValue(meta);
     }
 
     @Override
