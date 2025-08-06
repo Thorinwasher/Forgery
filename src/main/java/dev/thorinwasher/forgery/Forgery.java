@@ -7,6 +7,7 @@ import dev.thorinwasher.forgery.structure.PlacedStructureRegistry;
 import dev.thorinwasher.forgery.structure.StructureReadException;
 import dev.thorinwasher.forgery.structure.StructureReader;
 import dev.thorinwasher.forgery.structure.StructureRegistry;
+import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.util.stream.Stream;
 
 public class Forgery extends JavaPlugin {
+    public static final String NAMESPACE = "forgery";
 
     private StructureRegistry structureRegistry;
     private static Forgery instance;
@@ -59,7 +61,7 @@ public class Forgery extends JavaPlugin {
         super.saveResource(resource, false);
     }
 
-    public static Forgery instance() {
-        return instance;
+    public static Key key(String key) {
+        return Key.key(NAMESPACE, key);
     }
 }

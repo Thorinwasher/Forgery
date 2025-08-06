@@ -1,6 +1,38 @@
 {
   "schem_file": "blast_furnace.schem",
   "meta": {
-    "type": "blast_furnace"
+    "type": "blast_furnace",
+    "inventories": {
+      "furnace": {
+        "access_behavior": "insertable",
+        "interface_blocks": [
+          "minecraft:decorated_pot"
+        ],
+        "size": 27
+      },
+      "fuel": {
+        "access_behavior": "insertable",
+        "interface_blocks": [
+          "minecraft:decorated_pot"
+        ],
+        "size": 9
+      }
+    },
+    "block_transforms": [
+      {
+        "condition": {
+          "inventory_empty": "fuel"
+        },
+        "from": "minecraft:campfire[lit=true]",
+        "to": "minecraft:campfire[lit=false]",
+        "block_conversion": "keep_other_data"
+      }
+    ],
+    "process_parameters": [
+      "time",
+      "ingredients",
+      "target_inventory"
+    ],
+    "heat_result": 1200
   }
 }

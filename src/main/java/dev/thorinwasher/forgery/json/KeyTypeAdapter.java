@@ -1,4 +1,4 @@
-package dev.thorinwasher.forgery.util;
+package dev.thorinwasher.forgery.json;
 
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
@@ -6,7 +6,6 @@ import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import dev.thorinwasher.forgery.Forgery;
 import net.kyori.adventure.key.Key;
-import org.bukkit.NamespacedKey;
 
 import java.io.IOException;
 
@@ -26,6 +25,10 @@ public class KeyTypeAdapter extends TypeAdapter<Key> {
             in.nextNull();
             return null;
         }
-        return NamespacedKey.fromString(in.nextString(), Forgery.instance());
+        String stringPresentation = in.nextString();
+        if (stringPresentation.contains(":")) {
+            return Key.key(stringPresentation);
+        }
+        return Key.key(Forgery.NAMESPACE, stringPresentation);
     }
 }

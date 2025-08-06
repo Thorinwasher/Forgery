@@ -45,8 +45,6 @@ public class ForgeryStructure {
         this.entryPoints = origins;
         this.name = Objects.requireNonNull(name);
         this.structureMeta = Objects.requireNonNull(structureMeta);
-        ForgeryStructureType type = metaValue(StructureMeta.TYPE);
-        Preconditions.checkArgument(type != null, "Invalid structure '" + name + "', missing meta: " + StructureMeta.TYPE);
     }
 
     private static List<Vector3i> computeOrigins(Schematic schem) {

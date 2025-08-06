@@ -15,7 +15,15 @@ repositories {
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
+
     implementation("dev.thorinwasher.schem:schem-reader:1.0.0")
+    implementation("com.zaxxer:HikariCP:6.3.0")
+    compileOnly("org.xerial:sqlite-jdbc:3.50.3.0")
+
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.3")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.13.3")
+    testImplementation("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
+    testImplementation("org.xerial:sqlite-jdbc:3.50.3.0")
 }
 
 tasks {

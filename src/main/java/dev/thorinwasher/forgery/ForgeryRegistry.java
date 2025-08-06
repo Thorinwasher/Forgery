@@ -5,12 +5,12 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import dev.thorinwasher.forgery.forging.ForgingStepProperty;
 import dev.thorinwasher.forgery.structure.ForgeryStructureType;
 import dev.thorinwasher.forgery.structure.StructureMeta;
-import dev.thorinwasher.forgery.util.KeyTypeAdapter;
+import dev.thorinwasher.forgery.json.KeyTypeAdapter;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
-import org.bukkit.NamespacedKey;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -26,6 +26,7 @@ import java.util.List;
 public class ForgeryRegistry<T extends Keyed> {
     public static final ForgeryRegistry<ForgeryStructureType> STRUCTURE_TYPES = fromJson("/structure_types.json", ForgeryStructureType.class);
     public static final ForgeryRegistry<StructureMeta<?>> STRUCTURE_META = (ForgeryRegistry<StructureMeta<?>>) fromFields(StructureMeta.class);
+    public static final ForgeryRegistry<ForgingStepProperty<?>> FORGING_STEP_PROPERTY = (ForgeryRegistry<ForgingStepProperty<?>>) fromFields(ForgingStepProperty.class);
 
     private final ImmutableMap<Key, T> backing;
 
@@ -44,7 +45,7 @@ public class ForgeryRegistry<T extends Keyed> {
     }
 
     public @Nullable T get(String key) {
-        return backing.get(NamespacedKey.fromString(key, Forgery.instance()));
+        return backing.get(Key.key(Forgery.NAMESPACE, key));
     }
 
     public boolean containsKey(Key key) {
@@ -69,7 +70,7 @@ public class ForgeryRegistry<T extends Keyed> {
         }
     }
 
-    public static <T extends Keyed> ForgeryRegistry<T> fromJson(String path, Class<T> tClass) {
+    private static <T extends Keyed> ForgeryRegistry<T> fromJson(String path, Class<T> tClass) {
         Gson gson = new GsonBuilder().registerTypeAdapter(Key.class, new KeyTypeAdapter()).create();
         try (
                 InputStream inputStream = ForgeryRegistry.class.getResourceAsStream(path);

@@ -1,7 +1,7 @@
 package dev.thorinwasher.forgery.listener;
 
 import dev.thorinwasher.forgery.ForgeryRegistry;
-import dev.thorinwasher.forgery.forgeries.BlastFurnace;
+import dev.thorinwasher.forgery.forgeries.StructureBehavior;
 import dev.thorinwasher.forgery.structure.ForgeryStructure;
 import dev.thorinwasher.forgery.structure.PlacedForgeryStructure;
 import dev.thorinwasher.forgery.structure.PlacedStructureRegistry;
@@ -15,6 +15,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public record BlockEventListener(PlacedStructureRegistry placedStructureRegistry,
                                  StructureRegistry structureRegistry,
@@ -24,7 +25,7 @@ public record BlockEventListener(PlacedStructureRegistry placedStructureRegistry
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onBlockPlace(BlockPlaceEvent event) {
         for (ForgeryStructure forgeryStructure : structureRegistry.getPossibleStructures(event.getBlockPlaced().getType(), ForgeryRegistry.STRUCTURE_TYPES.get("blast_furnace"))) {
-            Optional<PlacedForgeryStructure<BlastFurnace>> placedStructure = PlacedForgeryStructure.findValid(forgeryStructure, event.getBlockPlaced().getLocation(), BlastFurnace::new);
+            Optional<PlacedForgeryStructure<StructureBehavior>> placedStructure = PlacedForgeryStructure.findValid(forgeryStructure, event.getBlockPlaced().getLocation(), () -> new StructureBehavior(UUID.randomUUID()));
             placedStructure.ifPresent(structure -> {
                 event.getPlayer().sendMessage(Component.translatable("Successfully built blast furnace"));
                 placedStructureRegistry.registerStructure(structure);

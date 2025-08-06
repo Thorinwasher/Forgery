@@ -1,13 +1,17 @@
 package dev.thorinwasher.forgery.forgeries;
 
 import dev.thorinwasher.forgery.structure.ForgeryStructureType;
-import dev.thorinwasher.forgery.structure.MultiblockStructure;
+import dev.thorinwasher.forgery.structure.PlacedForgeryStructure;
+
+import java.util.UUID;
 
 public interface StructureHolder<H extends StructureHolder<H>> {
 
-    MultiblockStructure<H> getStructure();
+    PlacedForgeryStructure<H> placedStructure();
 
-    void setStructure(MultiblockStructure<H> structure);
+    void setStructure(PlacedForgeryStructure<H> structure);
 
     ForgeryStructureType structureType();
+
+    UUID uuid();
 }

@@ -6,29 +6,20 @@ import org.bukkit.Location;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3d;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public class PlacedForgeryStructure<H extends StructureHolder<H>> implements MultiblockStructure<H> {
+public record PlacedForgeryStructure<H extends StructureHolder<H>>
+        (
+                ForgeryStructure structure,
+                Matrix3d transformation,
+                BlockLocation worldOrigin,
+                H holder
+        ) {
     private static final List<Matrix3d> ALLOWED_TRANSFORMATIONS = compileAllowedTransformations();
-    private final ForgeryStructure structure;
-    private final Matrix3d transformation;
-    private final Location worldOrigin;
-    private final BlockLocation unique;
-    private final H holder;
-
-    public PlacedForgeryStructure(ForgeryStructure structure, Matrix3d transformation,
-                                  Location worldOrigin, H holder) {
-        this.structure = structure;
-        this.transformation = transformation;
-        this.worldOrigin = worldOrigin;
-        this.unique = compileUnique();
-        this.holder = holder;
-    }
 
     public static <H extends StructureHolder<H>> Optional<PlacedForgeryStructure<H>> findValid(ForgeryStructure structure, Location worldOrigin, Supplier<H> holderSupplier) {
         for (Matrix3d transformation : ALLOWED_TRANSFORMATIONS) {
@@ -36,7 +27,7 @@ public class PlacedForgeryStructure<H extends StructureHolder<H>> implements Mul
             if (possibleOrigin.isPresent()) {
                 H holder = holderSupplier.get();
                 PlacedForgeryStructure<H> placedStructure = possibleOrigin
-                        .map(origin -> new PlacedForgeryStructure<>(structure, transformation, origin, holder))
+                        .map(origin -> new PlacedForgeryStructure<>(structure, transformation, BlockLocation.fromLocation(worldOrigin), holder))
                         .get();
                 holder.setStructure(placedStructure);
                 return Optional.of(placedStructure);
@@ -46,19 +37,13 @@ public class PlacedForgeryStructure<H extends StructureHolder<H>> implements Mul
     }
 
     public List<BlockLocation> positions() {
-        return structure.getExpectedBlocks(transformation, worldOrigin)
+        return structure.getExpectedBlocks(transformation, worldOrigin.toLocation())
                 .keySet()
                 .stream()
                 .map(location -> new BlockLocation(location.getBlockX(), location.getBlockY(), location.getBlockZ(), location.getWorld().getUID()))
                 .toList();
     }
 
-    @Override
-    public BlockLocation unique() {
-        return unique;
-    }
-
-    @Override
     public <V> @Nullable V metaValue(StructureMeta<V> meta) {
         return structure.metaValue(meta);
     }
@@ -66,12 +51,6 @@ public class PlacedForgeryStructure<H extends StructureHolder<H>> implements Mul
     @Override
     public H holder() {
         return holder;
-    }
-
-    private BlockLocation compileUnique() {
-        List<BlockLocation> positions = new ArrayList<>(positions());
-        positions.sort(this::comparePositions);
-        return positions.getFirst();
     }
 
     private static List<Matrix3d> compileAllowedTransformations() {
@@ -90,23 +69,14 @@ public class PlacedForgeryStructure<H extends StructureHolder<H>> implements Mul
                 .toList();
     }
 
-    private int comparePositions(BlockLocation breweryLocation, BlockLocation breweryLocation1) {
-        if (breweryLocation.y() > breweryLocation1.y()) {
-            return -1;
-        }
-        if (breweryLocation.x() > breweryLocation1.x()) {
-            return -1;
-        }
-        if (breweryLocation.z() > breweryLocation1.z()) {
-            return -1;
-        }
-        return 0;
-    }
-
     private static Matrix3d round(Matrix3d input) {
         double[] values = input.get(new double[9]);
         Matrix3d mat = new Matrix3d();
         mat.set(Arrays.stream(values).map(Math::round).toArray());
         return mat;
+    }
+
+    public BlockLocation origin() {
+        return worldOrigin;
     }
 }

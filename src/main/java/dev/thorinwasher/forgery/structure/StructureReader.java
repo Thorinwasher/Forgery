@@ -7,6 +7,7 @@ import dev.thorinwasher.forgery.ForgeryRegistry;
 import dev.thorinwasher.forgery.util.Pair;
 import dev.thorinwasher.schem.Schematic;
 import dev.thorinwasher.schem.SchematicReader;
+import net.kyori.adventure.key.Key;
 import org.bukkit.NamespacedKey;
 
 import java.io.BufferedInputStream;
@@ -53,7 +54,7 @@ public class StructureReader {
                     .entrySet()
                     .stream()
                     .map(entry -> {
-                        StructureMeta<?> meta = ForgeryRegistry.STRUCTURE_META.get(NamespacedKey.fromString(entry.getKey(), Forgery.instance()));
+                        StructureMeta<?> meta = ForgeryRegistry.STRUCTURE_META.get(Key.key(Forgery.NAMESPACE, entry.getKey()));
                         if (meta == null) {
                             throw new StructureReadException("Unknown meta: " + entry.getKey());
                         }
