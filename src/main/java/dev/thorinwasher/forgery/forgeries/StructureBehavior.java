@@ -1,9 +1,7 @@
 package dev.thorinwasher.forgery.forgeries;
 
 import com.google.common.base.Preconditions;
-import dev.thorinwasher.forgery.ForgeryRegistry;
 import dev.thorinwasher.forgery.inventory.ForgeryInventory;
-import dev.thorinwasher.forgery.structure.ForgeryStructureType;
 import dev.thorinwasher.forgery.structure.PlacedForgeryStructure;
 import dev.thorinwasher.forgery.structure.StructureMeta;
 import dev.thorinwasher.forgery.vector.BlockLocation;
@@ -17,28 +15,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class StructureBehavior implements StructureHolder<StructureBehavior>, Interactable {
+public class StructureBehavior implements Interactable {
     private final UUID uuid;
-    private PlacedForgeryStructure<StructureBehavior> structure;
+    private PlacedForgeryStructure structure;
     private Map<String, ForgeryInventory> inventories = new HashMap<>();
 
     public StructureBehavior(UUID blastFurnaceId) {
         this.uuid = blastFurnaceId;
     }
 
-    @Override
-    public PlacedForgeryStructure<StructureBehavior> placedStructure() {
+    public PlacedForgeryStructure placedStructure() {
         return this.structure;
     }
 
-    @Override
-    public void setStructure(PlacedForgeryStructure<StructureBehavior> structure) {
+    public void setStructure(PlacedForgeryStructure structure) {
         this.structure = structure;
-    }
-
-    @Override
-    public ForgeryStructureType structureType() {
-        return ForgeryRegistry.STRUCTURE_TYPES.get("blast_furnace");
     }
 
     @Override
@@ -58,7 +49,6 @@ public class StructureBehavior implements StructureHolder<StructureBehavior>, In
         return forgeryInventory;
     }
 
-    @Override
     public UUID uuid() {
         return this.uuid;
     }

@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.support.zipTo
+
 plugins {
     `java-library`
     id("xyz.jpenilla.run-paper") version "2.3.1"
@@ -63,6 +65,14 @@ tasks {
             "org.simpleyaml",
             "org.yaml.snakeyaml"
         ).forEach { relocate(it, "${project.group}.lib.$it") }
+    }
+
+    processResources {
+        mustRunAfter("zipResources")
+    }
+
+    register("zipResources") {
+        zipTo(File("./src/main/resources/exposed_resources.zip"), File("./src/main/exposed_resources"))
     }
 }
 

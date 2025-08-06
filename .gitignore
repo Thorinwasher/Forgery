@@ -22,3 +22,4 @@ gradle-app.setting
 /run
 .idea
 identifier.sqlite
+/src/main/resources/exposed_resources.zip

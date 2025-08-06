@@ -1,6 +1,5 @@
 package dev.thorinwasher.forgery.listener;
 
-import dev.thorinwasher.forgery.ForgeryRegistry;
 import dev.thorinwasher.forgery.forgeries.StructureBehavior;
 import dev.thorinwasher.forgery.structure.ForgeryStructure;
 import dev.thorinwasher.forgery.structure.PlacedForgeryStructure;
@@ -24,8 +23,8 @@ public record BlockEventListener(PlacedStructureRegistry placedStructureRegistry
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onBlockPlace(BlockPlaceEvent event) {
-        for (ForgeryStructure forgeryStructure : structureRegistry.getPossibleStructures(event.getBlockPlaced().getType(), ForgeryRegistry.STRUCTURE_TYPES.get("blast_furnace"))) {
-            Optional<PlacedForgeryStructure<StructureBehavior>> placedStructure = PlacedForgeryStructure.findValid(forgeryStructure, event.getBlockPlaced().getLocation(), () -> new StructureBehavior(UUID.randomUUID()));
+        for (ForgeryStructure forgeryStructure : structureRegistry.getPossibleStructures(event.getBlockPlaced().getType())) {
+            Optional<PlacedForgeryStructure> placedStructure = PlacedForgeryStructure.findValid(forgeryStructure, event.getBlockPlaced().getLocation(), () -> new StructureBehavior(UUID.randomUUID()));
             placedStructure.ifPresent(structure -> {
                 event.getPlayer().sendMessage(Component.translatable("Successfully built blast furnace"));
                 placedStructureRegistry.registerStructure(structure);
@@ -37,7 +36,7 @@ public record BlockEventListener(PlacedStructureRegistry placedStructureRegistry
     public void onBlockBreak(BlockBreakEvent event) {
         placedStructureRegistry.getStructure(BlockLocation.fromLocation(event.getBlock().getLocation()))
                 .ifPresent(structure -> {
-                    event.getPlayer().sendMessage(Component.translatable("Successfully destroyed " + structure.holder().structureType().key()));
+                    event.getPlayer().sendMessage(Component.translatable("Successfully destroyed " + structure.structure().getName()));
                     placedStructureRegistry.unregisterStructure(structure);
                 });
     }

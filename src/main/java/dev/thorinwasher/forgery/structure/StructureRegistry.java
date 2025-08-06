@@ -9,8 +9,7 @@ import java.util.*;
 
 public class StructureRegistry {
 
-    private final Map<ForgeryStructureType, Map<Material, Set<ForgeryStructure>>> structuresWithMaterials = new HashMap<>();
-    private final Map<ForgeryStructureType, Set<ForgeryStructure>> structures = new HashMap<>();
+    private final Map<Material, Set<ForgeryStructure>> structuresWithMaterials = new HashMap<>();
     private final Map<String, ForgeryStructure> structureNames = new HashMap<>();
 
     public Optional<ForgeryStructure> getStructure(@NotNull String key) {
@@ -18,18 +17,16 @@ public class StructureRegistry {
         return Optional.ofNullable(structureNames.get(key));
     }
 
-    public Set<ForgeryStructure> getPossibleStructures(@NotNull Material material, ForgeryStructureType structureType) {
+    public Set<ForgeryStructure> getPossibleStructures(@NotNull Material material) {
         Preconditions.checkNotNull(material);
-        return structuresWithMaterials.computeIfAbsent(structureType, ignored -> new HashMap<>()).getOrDefault(material, Set.of());
+        return structuresWithMaterials.getOrDefault(material, Set.of());
     }
 
     public void addStructure(@NotNull ForgeryStructure structure) {
         Preconditions.checkNotNull(structure);
         structureNames.put(structure.getName(), structure);
-        structures.computeIfAbsent(structure.metaValue(StructureMeta.TYPE), ignored -> new HashSet<>()).add(structure);
         for (BlockData blockData : structure.getPalette()) {
-            structuresWithMaterials.computeIfAbsent(structure.metaValue(StructureMeta.TYPE), ignored -> new HashMap<>())
-                    .computeIfAbsent(blockData.getMaterial(), ignored -> new HashSet<>()).add(structure);
+            structuresWithMaterials.computeIfAbsent(blockData.getMaterial(), ignored -> new HashSet<>()).add(structure);
         }
     }
 }

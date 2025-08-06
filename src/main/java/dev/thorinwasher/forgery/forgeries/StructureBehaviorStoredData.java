@@ -47,7 +47,7 @@ public class StructureBehaviorStoredData implements StoredData<StructureBehavior
                 UUID blastFurnaceId = DecoderUtil.asUuid(resultSet.getBytes("uuid"));
                 StructureBehavior blastFurnace = new StructureBehavior(blastFurnaceId);
                 registry.getStructure(schematic)
-                        .map(structure -> new PlacedForgeryStructure<>(structure, transformation, location, blastFurnace))
+                        .map(structure -> new PlacedForgeryStructure(structure, transformation, location, blastFurnace))
                         .ifPresentOrElse(structure -> {
                             blastFurnace.setStructure(structure);
                             output.add(blastFurnace);
@@ -68,7 +68,7 @@ public class StructureBehaviorStoredData implements StoredData<StructureBehavior
 
     @Override
     public void insert(StructureBehavior object, Connection connection) throws SQLException {
-        PlacedForgeryStructure<?> structure = object.placedStructure();
+        PlacedForgeryStructure structure = object.placedStructure();
         try (PreparedStatement preparedStatement = connection.prepareStatement(statements.get(SqlStatements.Type.INSERT))) {
             preparedStatement.setBytes(1, DecoderUtil.asBytes(object.uuid()));
             BlockLocation origin = structure.origin();

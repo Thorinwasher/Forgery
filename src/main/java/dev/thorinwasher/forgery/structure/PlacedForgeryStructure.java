@@ -1,6 +1,6 @@
 package dev.thorinwasher.forgery.structure;
 
-import dev.thorinwasher.forgery.forgeries.StructureHolder;
+import dev.thorinwasher.forgery.forgeries.StructureBehavior;
 import dev.thorinwasher.forgery.vector.BlockLocation;
 import org.bukkit.Location;
 import org.jetbrains.annotations.Nullable;
@@ -12,22 +12,23 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public record PlacedForgeryStructure<H extends StructureHolder<H>>
+public record PlacedForgeryStructure
         (
                 ForgeryStructure structure,
                 Matrix3d transformation,
                 BlockLocation worldOrigin,
-                H holder
+                StructureBehavior behavior
         ) {
+    
     private static final List<Matrix3d> ALLOWED_TRANSFORMATIONS = compileAllowedTransformations();
 
-    public static <H extends StructureHolder<H>> Optional<PlacedForgeryStructure<H>> findValid(ForgeryStructure structure, Location worldOrigin, Supplier<H> holderSupplier) {
+    public static Optional<PlacedForgeryStructure> findValid(ForgeryStructure structure, Location worldOrigin, Supplier<StructureBehavior> holderSupplier) {
         for (Matrix3d transformation : ALLOWED_TRANSFORMATIONS) {
             Optional<Location> possibleOrigin = structure.findValidOrigin(transformation, worldOrigin);
             if (possibleOrigin.isPresent()) {
-                H holder = holderSupplier.get();
-                PlacedForgeryStructure<H> placedStructure = possibleOrigin
-                        .map(origin -> new PlacedForgeryStructure<>(structure, transformation, BlockLocation.fromLocation(worldOrigin), holder))
+                StructureBehavior holder = holderSupplier.get();
+                PlacedForgeryStructure placedStructure = possibleOrigin
+                        .map(origin -> new PlacedForgeryStructure(structure, transformation, BlockLocation.fromLocation(worldOrigin), holder))
                         .get();
                 holder.setStructure(placedStructure);
                 return Optional.of(placedStructure);
@@ -48,9 +49,8 @@ public record PlacedForgeryStructure<H extends StructureHolder<H>>
         return structure.metaValue(meta);
     }
 
-    @Override
-    public H holder() {
-        return holder;
+    public StructureBehavior holder() {
+        return behavior;
     }
 
     private static List<Matrix3d> compileAllowedTransformations() {

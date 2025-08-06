@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.thorinwasher.forgery.Forgery;
-import dev.thorinwasher.forgery.ForgeryRegistry;
 import dev.thorinwasher.forgery.inventory.ForgeryInventory;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
@@ -20,10 +19,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public record StructureMeta<T>(Key key, Function<JsonElement, T> deserializer) implements Keyed {
-
-    public static final StructureMeta<ForgeryStructureType> TYPE = new StructureMeta<>(Key.key(Forgery.NAMESPACE, "type"), json ->
-            ForgeryRegistry.STRUCTURE_TYPES.get(Key.key(Forgery.NAMESPACE, json.getAsString()))
-    );
 
     public static final StructureMeta<Map<String, ForgeryInventory.Behavior>> INVENTORIES = new StructureMeta<>(
             Key.key(Forgery.NAMESPACE, "inventories"),

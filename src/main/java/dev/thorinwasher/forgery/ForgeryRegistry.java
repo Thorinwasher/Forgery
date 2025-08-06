@@ -6,9 +6,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import dev.thorinwasher.forgery.forging.ForgingStepProperty;
-import dev.thorinwasher.forgery.structure.ForgeryStructureType;
-import dev.thorinwasher.forgery.structure.StructureMeta;
 import dev.thorinwasher.forgery.json.KeyTypeAdapter;
+import dev.thorinwasher.forgery.structure.StructureMeta;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +23,6 @@ import java.util.Collection;
 import java.util.List;
 
 public class ForgeryRegistry<T extends Keyed> {
-    public static final ForgeryRegistry<ForgeryStructureType> STRUCTURE_TYPES = fromJson("/structure_types.json", ForgeryStructureType.class);
     public static final ForgeryRegistry<StructureMeta<?>> STRUCTURE_META = (ForgeryRegistry<StructureMeta<?>>) fromFields(StructureMeta.class);
     public static final ForgeryRegistry<ForgingStepProperty<?>> FORGING_STEP_PROPERTY = (ForgeryRegistry<ForgingStepProperty<?>>) fromFields(ForgingStepProperty.class);
 
