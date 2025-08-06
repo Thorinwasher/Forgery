@@ -19,7 +19,7 @@ public record PlacedForgeryStructure
                 BlockLocation worldOrigin,
                 StructureBehavior behavior
         ) {
-    
+
     private static final List<Matrix3d> ALLOWED_TRANSFORMATIONS = compileAllowedTransformations();
 
     public static Optional<PlacedForgeryStructure> findValid(ForgeryStructure structure, Location worldOrigin, Supplier<StructureBehavior> holderSupplier) {
@@ -28,7 +28,7 @@ public record PlacedForgeryStructure
             if (possibleOrigin.isPresent()) {
                 StructureBehavior holder = holderSupplier.get();
                 PlacedForgeryStructure placedStructure = possibleOrigin
-                        .map(origin -> new PlacedForgeryStructure(structure, transformation, BlockLocation.fromLocation(worldOrigin), holder))
+                        .map(origin -> new PlacedForgeryStructure(structure, transformation, BlockLocation.fromLocation(possibleOrigin.get()), holder))
                         .get();
                 holder.setStructure(placedStructure);
                 return Optional.of(placedStructure);

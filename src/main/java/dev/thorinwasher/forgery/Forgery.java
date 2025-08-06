@@ -1,14 +1,18 @@
 package dev.thorinwasher.forgery;
 
 import dev.thorinwasher.forgery.database.Database;
+import dev.thorinwasher.forgery.database.PersistencyAccess;
+import dev.thorinwasher.forgery.forgeries.StructureBehavior;
 import dev.thorinwasher.forgery.listener.BlockEventListener;
 import dev.thorinwasher.forgery.listener.PlayerEventListener;
+import dev.thorinwasher.forgery.listener.WorldEventListener;
 import dev.thorinwasher.forgery.structure.PlacedStructureRegistry;
 import dev.thorinwasher.forgery.structure.StructureReadException;
 import dev.thorinwasher.forgery.structure.StructureReader;
 import dev.thorinwasher.forgery.structure.StructureRegistry;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
@@ -22,22 +26,35 @@ public class Forgery extends JavaPlugin {
 
     private StructureRegistry structureRegistry;
     private PlacedStructureRegistry placedStructureRegistry;
-    private Database database;
+    private PersistencyAccess persistencyAccess;
 
     @Override
     public void onEnable() {
         saveExposedResources();
         this.structureRegistry = new StructureRegistry();
         this.placedStructureRegistry = new PlacedStructureRegistry();
-        this.database = new Database();
+        Database database = new Database();
         try {
             database.init(this.getDataFolder());
         } catch (IOException | SQLException e) {
             throw new RuntimeException(e);
         }
+        this.persistencyAccess = new PersistencyAccess(database, structureRegistry);
+        persistencyAccess.initialize();
         loadStructures();
-        Bukkit.getPluginManager().registerEvents(new BlockEventListener(placedStructureRegistry, structureRegistry, database), this);
+        Bukkit.getPluginManager().registerEvents(new BlockEventListener(placedStructureRegistry, structureRegistry, persistencyAccess), this);
         Bukkit.getPluginManager().registerEvents(new PlayerEventListener(placedStructureRegistry), this);
+        Bukkit.getPluginManager().registerEvents(new WorldEventListener(persistencyAccess, placedStructureRegistry), this);
+        Bukkit.getWorlds()
+                .stream()
+                .map(World::getUID)
+                .map(uuid -> database.find(persistencyAccess.behaviorStoredData(), uuid))
+                .forEach(future ->
+                        future.thenAcceptAsync(behaviors -> behaviors.stream()
+                                .map(StructureBehavior::placedStructure)
+                                .forEach(placedStructureRegistry::registerStructure)
+                        )
+                );
     }
 
     private void loadStructures() {

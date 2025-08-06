@@ -1,6 +1,5 @@
 package dev.thorinwasher.forgery.listener;
 
-import dev.thorinwasher.forgery.forgeries.Interactable;
 import dev.thorinwasher.forgery.structure.PlacedForgeryStructure;
 import dev.thorinwasher.forgery.structure.PlacedStructureRegistry;
 import dev.thorinwasher.forgery.vector.BlockLocation;
@@ -25,8 +24,6 @@ public record PlayerEventListener(PlacedStructureRegistry placedStructureRegistr
         BlockLocation blockLocation = BlockLocation.fromLocation(clickedBLock.getLocation());
         placedStructureRegistry.getStructure(blockLocation)
                 .map(PlacedForgeryStructure::holder)
-                .filter(Interactable.class::isInstance)
-                .map(Interactable.class::cast)
                 .ifPresent(interactable -> interactable.interact(event.getPlayer(), blockLocation));
     }
 }

@@ -1,5 +1,6 @@
 package dev.thorinwasher.forgery.listener;
 
+import dev.thorinwasher.forgery.database.PersistencyAccess;
 import dev.thorinwasher.forgery.forgeries.StructureBehavior;
 import dev.thorinwasher.forgery.structure.ForgeryStructure;
 import dev.thorinwasher.forgery.structure.PlacedForgeryStructure;
@@ -18,16 +19,17 @@ import java.util.UUID;
 
 public record BlockEventListener(PlacedStructureRegistry placedStructureRegistry,
                                  StructureRegistry structureRegistry,
-                                 dev.thorinwasher.forgery.database.Database database) implements Listener {
+                                 PersistencyAccess persistencyAccess) implements Listener {
 
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onBlockPlace(BlockPlaceEvent event) {
         for (ForgeryStructure forgeryStructure : structureRegistry.getPossibleStructures(event.getBlockPlaced().getType())) {
-            Optional<PlacedForgeryStructure> placedStructure = PlacedForgeryStructure.findValid(forgeryStructure, event.getBlockPlaced().getLocation(), () -> new StructureBehavior(UUID.randomUUID()));
+            Optional<PlacedForgeryStructure> placedStructure = PlacedForgeryStructure.findValid(forgeryStructure, event.getBlockPlaced().getLocation(), () -> new StructureBehavior(UUID.randomUUID(), persistencyAccess));
             placedStructure.ifPresent(structure -> {
-                event.getPlayer().sendMessage(Component.translatable("Successfully built blast furnace"));
+                event.getPlayer().sendMessage(Component.translatable("Successfully built: " + structure.structure().getName()));
                 placedStructureRegistry.registerStructure(structure);
+                persistencyAccess.database().insert(persistencyAccess.behaviorStoredData(), structure.behavior());
             });
         }
     }
@@ -38,6 +40,7 @@ public record BlockEventListener(PlacedStructureRegistry placedStructureRegistry
                 .ifPresent(structure -> {
                     event.getPlayer().sendMessage(Component.translatable("Successfully destroyed " + structure.structure().getName()));
                     placedStructureRegistry.unregisterStructure(structure);
+                    persistencyAccess.database().remove(persistencyAccess.behaviorStoredData(), structure.behavior());
                 });
     }
 }

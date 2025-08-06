@@ -75,7 +75,7 @@ public class Database {
         }, executor);
     }
 
-    public <T> CompletableFuture<Void> updateValue(UpdateableStoredData<T, ?> dataType, T newValue) {
+    public <T> CompletableFuture<Void> update(UpdateableStoredData<T, ?> dataType, T newValue) {
         if (hikariDataSource == null) {
             throw new IllegalStateException("Not initialized");
         }
@@ -88,7 +88,7 @@ public class Database {
         }, executor);
     }
 
-    public <T> CompletableFuture<Void> insertValue(StoredData<T, ?> dataType, T value) {
+    public <T> CompletableFuture<Void> insert(StoredData<T, ?> dataType, T value) {
         if (hikariDataSource == null) {
             throw new IllegalStateException("Not initialized");
         }

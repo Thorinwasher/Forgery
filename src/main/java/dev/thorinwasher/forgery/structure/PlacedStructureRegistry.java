@@ -5,11 +5,12 @@ import dev.thorinwasher.forgery.vector.BlockLocation;
 import dev.thorinwasher.forgery.vector.BlockVector;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PlacedStructureRegistry {
 
-    private final Map<UUID, Map<BlockVector, PlacedForgeryStructure>> structures = new HashMap<>();
-    private final Map<ForgeryStructure, Set<PlacedForgeryStructure>> typedPlacedForgeryStructureMap = new HashMap<>();
+    private final Map<UUID, Map<BlockVector, PlacedForgeryStructure>> structures = new ConcurrentHashMap<>();
+    private final Map<ForgeryStructure, Set<PlacedForgeryStructure>> typedPlacedForgeryStructureMap = new ConcurrentHashMap<>();
 
     public void registerStructure(PlacedForgeryStructure PlacedForgeryStructure) {
         for (BlockLocation location : PlacedForgeryStructure.positions()) {

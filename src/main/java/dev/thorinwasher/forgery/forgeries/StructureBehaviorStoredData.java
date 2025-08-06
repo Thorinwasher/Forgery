@@ -1,5 +1,6 @@
 package dev.thorinwasher.forgery.forgeries;
 
+import dev.thorinwasher.forgery.database.PersistencyAccess;
 import dev.thorinwasher.forgery.database.SqlStatements;
 import dev.thorinwasher.forgery.database.StoredData;
 import dev.thorinwasher.forgery.inventory.InventoryStoredData;
@@ -23,11 +24,11 @@ public class StructureBehaviorStoredData implements StoredData<StructureBehavior
     private final SqlStatements statements = new SqlStatements("/database/structure");
     private static final String BLAST_FURNACE = "blast_furnace";
     private final StructureRegistry registry;
-    private final InventoryStoredData inventoryStoredData;
+    private final PersistencyAccess persistencyAccess;
 
-    public StructureBehaviorStoredData(StructureRegistry registry, InventoryStoredData inventoryStoredData) {
+    public StructureBehaviorStoredData(StructureRegistry registry, PersistencyAccess persistencyAccess) {
         this.registry = registry;
-        this.inventoryStoredData = inventoryStoredData;
+        this.persistencyAccess = persistencyAccess;
     }
 
     @Override
@@ -45,7 +46,7 @@ public class StructureBehaviorStoredData implements StoredData<StructureBehavior
                 Matrix3d transformation = DecoderUtil.asTransformation(resultSet.getInt("transformation"));
                 String schematic = resultSet.getString("schematic");
                 UUID blastFurnaceId = DecoderUtil.asUuid(resultSet.getBytes("uuid"));
-                StructureBehavior blastFurnace = new StructureBehavior(blastFurnaceId);
+                StructureBehavior blastFurnace = new StructureBehavior(blastFurnaceId, persistencyAccess);
                 registry.getStructure(schematic)
                         .map(structure -> new PlacedForgeryStructure(structure, transformation, location, blastFurnace))
                         .ifPresentOrElse(structure -> {
@@ -55,7 +56,7 @@ public class StructureBehaviorStoredData implements StoredData<StructureBehavior
             }
         }
         for (StructureBehavior blastFurnace : output) {
-            blastFurnace.setInventories(inventoryStoredData.find(
+            blastFurnace.setInventories(persistencyAccess.inventoryStoredData().find(
                                     new InventoryStoredData.StructureInfo(blastFurnace.uuid(), blastFurnace.placedStructure().structure()), connection
                             )
                             .stream()

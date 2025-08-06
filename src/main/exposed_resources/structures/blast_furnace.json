@@ -12,7 +12,7 @@
       "fuel": {
         "access_behavior": "insertable",
         "interface_blocks": [
-          "minecraft:decorated_pot"
+          "minecraft:campfire"
         ],
         "size": 9
       }
