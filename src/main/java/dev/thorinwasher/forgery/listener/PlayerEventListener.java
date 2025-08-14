@@ -1,5 +1,6 @@
 package dev.thorinwasher.forgery.listener;
 
+import dev.thorinwasher.forgery.forgeries.StructureBehavior;
 import dev.thorinwasher.forgery.structure.PlacedForgeryStructure;
 import dev.thorinwasher.forgery.structure.PlacedStructureRegistry;
 import dev.thorinwasher.forgery.vector.BlockLocation;
@@ -12,18 +13,22 @@ import org.bukkit.inventory.EquipmentSlot;
 
 public record PlayerEventListener(PlacedStructureRegistry placedStructureRegistry) implements Listener {
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
     public void onStructureInteract(PlayerInteractEvent event) {
-        if (event.getAction().isLeftClick() || event.getHand() != EquipmentSlot.HAND || event.getPlayer().isSneaking()) {
+        if (event.getAction().isLeftClick() || event.getHand() != EquipmentSlot.HAND) {
             return;
         }
-        Block clickedBLock = event.getClickedBlock();
-        if (clickedBLock == null) {
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock == null) {
             return;
         }
-        BlockLocation blockLocation = BlockLocation.fromLocation(clickedBLock.getLocation());
+        BlockLocation blockLocation = BlockLocation.fromLocation(clickedBlock.getLocation());
         placedStructureRegistry.getStructure(blockLocation)
                 .map(PlacedForgeryStructure::holder)
-                .ifPresent(interactable -> interactable.interact(event.getPlayer(), blockLocation));
+                .ifPresent(interactable -> {
+                    StructureBehavior.InteractionResult result = interactable.interact(event.getPlayer(), blockLocation);
+                    event.setUseInteractedBlock(result.useBlock());
+                    event.setUseItemInHand(result.useItem());
+                });
     }
 }

@@ -1,19 +1,16 @@
-package dev.thorinwasher.forgery.inventory;
+package dev.thorinwasher.forgery.forging;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-import dev.thorinwasher.forgery.forging.ForgingStep;
+import dev.thorinwasher.forgery.inventory.ForgingMaterial;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
 
-public record ForgeryItem(List<ForgingStep> steps) {
+public record ForgingSteps(List<ForgingStep> steps) {
 
-
-    public static Optional<ForgeryItem> fromString(String itemContent) {
-        JsonElement jsonElement = JsonParser.parseString(itemContent);
+    public static Optional<ForgingSteps> fromJson(JsonElement jsonElement) {
         if (!(jsonElement instanceof JsonArray jsonArray)) {
             return Optional.empty();
         }
@@ -21,7 +18,7 @@ public record ForgeryItem(List<ForgingStep> steps) {
         if (!content.stream().allMatch(JsonElement::isJsonObject)) {
             return Optional.empty();
         }
-        return Optional.of(new ForgeryItem(
+        return Optional.of(new ForgingSteps(
                 content.stream()
                         .map(JsonElement::getAsJsonObject)
                         .map(ForgingStep::fromJson)
@@ -29,16 +26,20 @@ public record ForgeryItem(List<ForgingStep> steps) {
         ));
     }
 
-    public @NotNull String asString() {
+    public @NotNull JsonElement asJson() {
         JsonArray output = new JsonArray();
         steps.stream()
                 .map(ForgingStep::asJson)
                 .forEach(output::add);
-        return output.toString();
+        return output;
     }
 
     @Override
     public @NotNull String toString() {
-        return this.asString();
+        return this.asJson().toString();
+    }
+
+    public Optional<ForgingMaterial> calculateMaterial() {
+        return Optional.empty();
     }
 }

@@ -3,6 +3,7 @@ package dev.thorinwasher.forgery.forgeries;
 import dev.thorinwasher.forgery.database.PersistencyAccess;
 import dev.thorinwasher.forgery.database.SqlStatements;
 import dev.thorinwasher.forgery.database.StoredData;
+import dev.thorinwasher.forgery.forging.ItemAdapter;
 import dev.thorinwasher.forgery.inventory.InventoryStoredData;
 import dev.thorinwasher.forgery.structure.PlacedForgeryStructure;
 import dev.thorinwasher.forgery.structure.StructureRegistry;
@@ -25,10 +26,12 @@ public class StructureBehaviorStoredData implements StoredData<StructureBehavior
     private static final String BLAST_FURNACE = "blast_furnace";
     private final StructureRegistry registry;
     private final PersistencyAccess persistencyAccess;
+    private final ItemAdapter itemAdapter;
 
-    public StructureBehaviorStoredData(StructureRegistry registry, PersistencyAccess persistencyAccess) {
+    public StructureBehaviorStoredData(StructureRegistry registry, PersistencyAccess persistencyAccess, ItemAdapter itemAdapter) {
         this.registry = registry;
         this.persistencyAccess = persistencyAccess;
+        this.itemAdapter = itemAdapter;
     }
 
     @Override
@@ -46,7 +49,7 @@ public class StructureBehaviorStoredData implements StoredData<StructureBehavior
                 Matrix3d transformation = DecoderUtil.asTransformation(resultSet.getInt("transformation"));
                 String schematic = resultSet.getString("schematic");
                 UUID blastFurnaceId = DecoderUtil.asUuid(resultSet.getBytes("uuid"));
-                StructureBehavior blastFurnace = new StructureBehavior(blastFurnaceId, persistencyAccess);
+                StructureBehavior blastFurnace = new StructureBehavior(blastFurnaceId, persistencyAccess, itemAdapter);
                 registry.getStructure(schematic)
                         .map(structure -> new PlacedForgeryStructure(structure, transformation, location, blastFurnace))
                         .ifPresentOrElse(structure -> {

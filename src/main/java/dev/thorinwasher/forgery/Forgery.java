@@ -1,8 +1,12 @@
 package dev.thorinwasher.forgery;
 
+import com.google.common.base.Preconditions;
+import dev.thorinwasher.forgery.api.ForgeryApi;
 import dev.thorinwasher.forgery.database.Database;
 import dev.thorinwasher.forgery.database.PersistencyAccess;
 import dev.thorinwasher.forgery.forgeries.StructureBehavior;
+import dev.thorinwasher.forgery.forging.ItemAdapter;
+import dev.thorinwasher.forgery.integration.IntegrationRegistry;
 import dev.thorinwasher.forgery.listener.BlockEventListener;
 import dev.thorinwasher.forgery.listener.PlayerEventListener;
 import dev.thorinwasher.forgery.listener.WorldEventListener;
@@ -13,6 +17,7 @@ import dev.thorinwasher.forgery.structure.StructureRegistry;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
@@ -27,22 +32,36 @@ public class Forgery extends JavaPlugin {
     private StructureRegistry structureRegistry;
     private PlacedStructureRegistry placedStructureRegistry;
     private PersistencyAccess persistencyAccess;
+    private IntegrationRegistry integrationRegistry;
+    private ItemAdapter itemAdapter;
+    private boolean loadSuccess = false;
+
+    @Override
+    public void onLoad() {
+        this.integrationRegistry = new IntegrationRegistry();
+        this.itemAdapter = new ItemAdapter(integrationRegistry);
+        this.structureRegistry = new StructureRegistry();
+        this.placedStructureRegistry = new PlacedStructureRegistry();
+        Bukkit.getServicesManager().register(ForgeryApi.class, new ForgeryApiImpl(integrationRegistry, placedStructureRegistry),
+                this, ServicePriority.Normal);
+        this.loadSuccess = true; // Plugins always continues to enable even if it failed on load
+    }
 
     @Override
     public void onEnable() {
+        Preconditions.checkState(loadSuccess, "Failed on load");
         saveExposedResources();
-        this.structureRegistry = new StructureRegistry();
-        this.placedStructureRegistry = new PlacedStructureRegistry();
+        integrationRegistry.initialize();
         Database database = new Database();
         try {
             database.init(this.getDataFolder());
         } catch (IOException | SQLException e) {
             throw new RuntimeException(e);
         }
-        this.persistencyAccess = new PersistencyAccess(database, structureRegistry);
+        this.persistencyAccess = new PersistencyAccess(database, structureRegistry, itemAdapter);
         persistencyAccess.initialize();
         loadStructures();
-        Bukkit.getPluginManager().registerEvents(new BlockEventListener(placedStructureRegistry, structureRegistry, persistencyAccess), this);
+        Bukkit.getPluginManager().registerEvents(new BlockEventListener(placedStructureRegistry, structureRegistry, persistencyAccess, itemAdapter), this);
         Bukkit.getPluginManager().registerEvents(new PlayerEventListener(placedStructureRegistry), this);
         Bukkit.getPluginManager().registerEvents(new WorldEventListener(persistencyAccess, placedStructureRegistry), this);
         Bukkit.getWorlds()

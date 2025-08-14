@@ -105,15 +105,14 @@ public class Database {
         if (hikariDataSource == null) {
             throw new IllegalStateException("Not initialized");
         }
-        final CompletableFuture<List<T>> future = new CompletableFuture<>();
-        CompletableFuture.runAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             try (Connection connection = hikariDataSource.getConnection()) {
-                future.complete(dataType.find(searchObject, connection));
+                return dataType.find(searchObject, connection);
             } catch (SQLException e) {
-                future.completeExceptionally(e);
+                e.printStackTrace();
+                return List.of();
             }
         }, executor);
-        return future;
     }
 
     public CompletableFuture<Void> flush() {
