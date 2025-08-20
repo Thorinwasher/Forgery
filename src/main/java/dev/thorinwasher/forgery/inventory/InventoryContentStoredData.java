@@ -1,10 +1,11 @@
 package dev.thorinwasher.forgery.inventory;
 
-import com.google.gson.JsonParser;
 import dev.thorinwasher.forgery.database.SqlStatements;
 import dev.thorinwasher.forgery.database.UpdateableStoredData;
+import dev.thorinwasher.forgery.serialize.Serialize;
 import dev.thorinwasher.forgery.util.DecoderUtil;
 import dev.thorinwasher.forgery.util.Logger;
+import io.leangen.geantyref.TypeToken;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,7 +23,8 @@ public class InventoryContentStoredData implements UpdateableStoredData<Inventor
     @Override
     public void update(InventoryContentStoredData.ItemInfo object, Connection connection) throws SQLException {
         try (PreparedStatement preparedStatement = connection.prepareStatement(statements.get(SqlStatements.Type.UPDATE))) {
-            preparedStatement.setString(1, object.item().forgeryItem().asJson().toString());
+            preparedStatement.setString(1, Serialize.asJson(TypeToken.get(ForgingItem.class), object.item().forgeryItem())
+                    .orElse("{}"));
             preparedStatement.setBytes(2, DecoderUtil.asBytes(object.structure()));
             preparedStatement.setString(3, object.inventoryType());
             preparedStatement.setInt(4, object.item().pos());
@@ -39,11 +41,12 @@ public class InventoryContentStoredData implements UpdateableStoredData<Inventor
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 int pos = resultSet.getInt("pos");
-                ForgingItem.fromJson(JsonParser.parseString(resultSet.getString("item_content")))
+                Serialize.fromJson(TypeToken.get(ForgingItem.class), resultSet.getString("item_content"))
                         .map(forgeryItem -> new ForgeryInventory.ItemRecord(
                                 pos,
-                                forgeryItem
-                        )).ifPresentOrElse(item ->
+                                forgeryItem)
+                        )
+                        .ifPresentOrElse(item ->
                                         output.add(new ItemInfo(
                                                 item,
                                                 searchObject.structureUuid(),
@@ -51,7 +54,6 @@ public class InventoryContentStoredData implements UpdateableStoredData<Inventor
                                         )),
                                 () -> Logger.logInfo("Invalid item content in: " + searchObject)
                         );
-                ;
             }
         }
         return output;
@@ -62,7 +64,7 @@ public class InventoryContentStoredData implements UpdateableStoredData<Inventor
         try (PreparedStatement preparedStatement = connection.prepareStatement(statements.get(SqlStatements.Type.INSERT))) {
             preparedStatement.setBytes(1, DecoderUtil.asBytes(object.structure()));
             preparedStatement.setInt(2, object.item().pos());
-            preparedStatement.setString(3, object.item().forgeryItem().asJson().toString());
+            preparedStatement.setString(3, Serialize.asJson(ForgingItem.class, object.item().forgeryItem()).orElse("{}"));
             preparedStatement.setString(4, object.inventoryType());
             preparedStatement.execute();
         }

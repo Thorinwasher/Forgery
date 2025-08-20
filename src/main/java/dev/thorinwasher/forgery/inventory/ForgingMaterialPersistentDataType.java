@@ -1,6 +1,6 @@
 package dev.thorinwasher.forgery.inventory;
 
-import com.google.gson.JsonParser;
+import dev.thorinwasher.forgery.serialize.Serialize;
 import org.bukkit.persistence.PersistentDataAdapterContext;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
@@ -21,11 +21,13 @@ public class ForgingMaterialPersistentDataType implements PersistentDataType<Str
 
     @Override
     public @NotNull String toPrimitive(@NotNull ForgingMaterial complex, @NotNull PersistentDataAdapterContext context) {
-        return complex.asJson().toString();
+        return Serialize.asJson(ForgingMaterial.class, complex)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid material data"));
     }
 
     @Override
     public @NotNull ForgingMaterial fromPrimitive(@NotNull String primitive, @NotNull PersistentDataAdapterContext context) {
-        return ForgingMaterial.fromJson(JsonParser.parseString(primitive)).get();
+        return Serialize.fromJson(ForgingMaterial.class, primitive)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid material data"));
     }
 }

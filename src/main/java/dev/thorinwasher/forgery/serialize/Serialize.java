@@ -1,0 +1,63 @@
+package dev.thorinwasher.forgery.serialize;
+
+import com.google.gson.JsonElement;
+import dev.thorinwasher.forgery.forging.ForgingIngredients;
+import dev.thorinwasher.forgery.forging.ForgingStep;
+import dev.thorinwasher.forgery.forging.ForgingSteps;
+import dev.thorinwasher.forgery.forging.ToolInput;
+import dev.thorinwasher.forgery.inventory.ForgingItem;
+import dev.thorinwasher.forgery.inventory.ForgingMaterial;
+import dev.thorinwasher.forgery.util.ForgeryKey;
+import io.leangen.geantyref.TypeToken;
+import org.spongepowered.configurate.ConfigurateException;
+import org.spongepowered.configurate.ConfigurationOptions;
+import org.spongepowered.configurate.gson.GsonConfigurationLoader;
+
+import java.util.Optional;
+
+public class Serialize {
+
+    private final static GsonConfigurationLoader.Builder GSON_CONFIGURATION_LOADER_BUILDER = GsonConfigurationLoader.builder()
+            .defaultOptions(Serialize::registerDefaultOptions);
+
+    private static ConfigurationOptions registerDefaultOptions(ConfigurationOptions configurationOptions) {
+        return configurationOptions.serializers(builder ->
+                builder.register(ForgingSteps.class, new ForgingStepsSerializer())
+                        .register(ForgingStep.class, new ForgingStepSerializer())
+                        .register(ForgingIngredients.class, new ForgingIngredientsSerializer())
+                        .register(ToolInput.class, new ToolInputSerializer())
+                        .register(ForgingItem.class, new ForgingItemSerializer())
+                        .register(ForgingMaterial.class, new ForgingMaterialSerializer())
+                        .register(ForgeryKey.class, new ForgeryKeySerializer())
+        );
+    }
+
+    public static <T> Optional<String> asJson(TypeToken<T> token, T value) {
+        try {
+            return Optional.of(
+                    GSON_CONFIGURATION_LOADER_BUILDER.build().createNode().set(token, value).get(JsonElement.class).toString()
+            );
+        } catch (ConfigurateException e) {
+            return Optional.empty();
+        }
+    }
+
+    public static <T> Optional<String> asJson(Class<T> tClass, T value) {
+        return asJson(TypeToken.get(tClass), value);
+    }
+
+    public static <T> Optional<T> fromJson(TypeToken<T> token, String json) {
+        try {
+            return Optional.ofNullable(
+                    GSON_CONFIGURATION_LOADER_BUILDER.buildAndLoadString(json)
+                            .get(token)
+            );
+        } catch (ConfigurateException e) {
+            return Optional.empty();
+        }
+    }
+
+    public static <T> Optional<T> fromJson(Class<T> tClass, String json) {
+        return fromJson(TypeToken.get(tClass), json);
+    }
+}

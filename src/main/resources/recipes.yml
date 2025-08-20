@@ -1,0 +1,40 @@
+high_carbon_steel:
+  structure_type: blast_furnace
+  steps:
+    - target_inventory: furnace
+      ingredients:
+        iron_ore: 10
+        coal: 7
+    - process_time: 5m
+      target_inventory: fuel
+      repeat: 2
+      ingredients:
+        coal: 5
+  result:
+    name: High carbon steel bar
+    material: minecraft:iron_ingot
+    amount: 10
+soft_damascus_sword:
+  structure_type: anvil
+  steps:
+    - ingredients:
+        forgery:high_carbon_steel: 2
+    - heat: 1000
+      tool_input: flatten, bend
+      repeat: 7
+    - heat: 1000
+      tool_input: flatten, twist
+      repeat: 2
+  result:
+    name: Soft damascus sword
+    material: minecraft:iron_sword
+damascus_sword:
+  structure_type: water_cauldron
+  steps:
+    - heat: 1000
+      ingredients:
+        forgery:soft_damascus_sword: 1
+      time: 1m
+  result:
+    name: Hardened damascus sword
+    material: minecraft:iron_sword

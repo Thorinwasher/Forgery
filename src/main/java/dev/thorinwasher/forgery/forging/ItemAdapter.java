@@ -31,7 +31,7 @@ public record ItemAdapter(IntegrationRegistry registry) {
                 .sorted(Comparator.comparing(ItemIntegration.ForgingMaterialResult::priority))
                 .map(ItemIntegration.ForgingMaterialResult::material)
                 .findFirst();
-        return Optional.ofNullable(view.get(FORGING_STEPS, ForgingStepPersistentData.INSTANCE))
+        return Optional.ofNullable(view.get(FORGING_STEPS, ForgingStepsPersistentData.INSTANCE))
                 .map(forgingSteps -> new ForgingItem(materialOptional.orElse(null), forgingSteps))
                 .or(() ->
                         materialOptional.map(material -> new ForgingItem(material, new ForgingSteps(List.of())))
@@ -46,7 +46,7 @@ public record ItemAdapter(IntegrationRegistry registry) {
                 ).orElse(failedItem());
         output.editPersistentDataContainer(pdc -> {
             if (!item.steps().steps().isEmpty()) {
-                pdc.set(FORGING_STEPS, ForgingStepPersistentData.INSTANCE, item.steps());
+                pdc.set(FORGING_STEPS, ForgingStepsPersistentData.INSTANCE, item.steps());
             }
             if (item.material() != null && item.material().providesExtraData()) {
                 pdc.set(FORGING_MATERIAL, ForgingMaterialPersistentDataType.INSTANCE, item.material());

@@ -19,6 +19,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.spongepowered.configurate.ConfigurationOptions;
+import org.spongepowered.configurate.gson.GsonConfigurationLoader;
 
 import java.io.*;
 import java.sql.SQLException;

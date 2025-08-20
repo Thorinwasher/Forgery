@@ -1,14 +1,9 @@
 package dev.thorinwasher.forgery.forging;
 
-import com.google.gson.JsonElement;
+import dev.thorinwasher.forgery.inventory.ForgingMaterial;
 
-public class ForgingIngredients {
+import java.util.Map;
 
-    public static ForgingIngredients fromJson(JsonElement json) {
-        return null;
-    }
+public record ForgingIngredients(Map<ForgingMaterial, Integer> ingredients) {
 
-    public JsonElement toJson() {
-        return null;
-    }
 }

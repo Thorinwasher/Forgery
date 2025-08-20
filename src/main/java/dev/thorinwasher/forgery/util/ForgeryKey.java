@@ -12,9 +12,13 @@ import java.util.Optional;
 public record ForgeryKey(String namespace, String key) {
 
     public static ForgeryKey forgery(String string) {
-        String[] split = string.split(":", 2);
+        return defaultNamespace(Forgery.NAMESPACE, string);
+    }
+
+    public static ForgeryKey defaultNamespace(String defaultNamespace, String value) {
+        String[] split = value.split(":", 2);
         if (split.length == 1) {
-            return new ForgeryKey(Forgery.NAMESPACE, split[0]);
+            return new ForgeryKey(defaultNamespace, split[0]);
         }
         return new ForgeryKey(split[0], split[1]);
     }

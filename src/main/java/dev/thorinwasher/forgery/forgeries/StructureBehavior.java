@@ -28,8 +28,8 @@ public class StructureBehavior {
     private final PersistencyAccess persistencyAccess;
     private final ItemAdapter itemAdapter;
     private PlacedForgeryStructure structure;
-    private Map<String, ForgeryInventory> inventories = new HashMap<>();
-    private Map<BlockType, String> blockTypeInventoryTypeMap = new HashMap<>();
+    private final Map<String, ForgeryInventory> inventories = new HashMap<>();
+    private final Map<BlockType, String> blockTypeInventoryTypeMap = new HashMap<>();
 
     public StructureBehavior(UUID blastFurnaceId, PersistencyAccess persistencyAccess, ItemAdapter itemAdapter) {
         this.uuid = blastFurnaceId;
@@ -50,7 +50,7 @@ public class StructureBehavior {
         }
     }
 
-    public InteractionResult interact(Player actor, BlockLocation location) {
+    public InteractionResult interact(Player actor, BlockLocation location, EquipmentSlot hand) {
         Block block = location.toBlock();
         BlockType blockType = block.getType().asBlockType();
         String inventoryTypeName = blockTypeInventoryTypeMap.get(blockType);
@@ -59,39 +59,42 @@ public class StructureBehavior {
             return InteractionResult.DEFAULT;
         }
         ForgeryInventory forgeryInventory = inventory(inventoryTypeName);
-        return switch (forgeryInventory.behavior().access()) {
-            case INSERTABLE -> accessInsertableInventory(actor, forgeryInventory);
-            case OPENABLE -> openInventory(actor, forgeryInventory);
-        };
+        switch (forgeryInventory.behavior().access()) {
+            case INSERTABLE -> accessInsertableInventory(actor, forgeryInventory, hand);
+            case OPENABLE -> openInventory(actor, forgeryInventory, hand);
+        }
+        return InteractionResult.DENY;
     }
 
-    private InteractionResult accessInsertableInventory(Player actor, ForgeryInventory forgeryInventory) {
+    private InteractionResult accessInsertableInventory(Player actor, ForgeryInventory forgeryInventory, EquipmentSlot hand) {
         if (actor.isSneaking()) {
+            if (hand == EquipmentSlot.OFF_HAND) {
+                return InteractionResult.DENY;
+            }
             PlayerInventory actorInventory = actor.getInventory();
             forgeryInventory.retrieveFirstAndSave()
                     .map(itemAdapter::toBukkit)
                     .ifPresent(itemStack -> {
-                        if (actorInventory.addItem(itemStack).isEmpty()) {
+                        if (!actorInventory.addItem(itemStack).isEmpty()) {
                             actor.getWorld().dropItemNaturally(actor.getLocation(), itemStack);
                         }
                     });
             return InteractionResult.DENY;
         }
-        List<EquipmentSlot> equipmentSlots = List.of(EquipmentSlot.HAND, EquipmentSlot.OFF_HAND);
         PlayerInventory inventory = actor.getInventory();
-        for (EquipmentSlot equipmentSlot : equipmentSlots) {
-            ItemStack itemStack = inventory.getItem(equipmentSlot);
-            if (itemStack.isEmpty()) {
-                continue;
-            }
-            itemAdapter.toForgery(itemStack)
-                    .ifPresent(forgeryInventory::addItem);
-            break;
+        ItemStack itemStack = inventory.getItem(hand);
+        if (itemStack.isEmpty()) {
+            return InteractionResult.DENY;
         }
+        itemAdapter.toForgery(itemStack)
+                .ifPresent(forgeryInventory::addItem);
         return InteractionResult.DENY;
     }
 
-    private InteractionResult openInventory(Player actor, ForgeryInventory forgeryInventory) {
+    private InteractionResult openInventory(Player actor, ForgeryInventory forgeryInventory, EquipmentSlot hand) {
+        if (hand == EquipmentSlot.OFF_HAND) {
+            return InteractionResult.DENY;
+        }
         if (actor.isSneaking()) {
             return InteractionResult.DEFAULT;
         }
@@ -110,6 +113,7 @@ public class StructureBehavior {
                     persistencyAccess.inventoryStoredData(),
                     new InventoryStoredData.InventoryInfo(uuid(), forgeryInventory)
             );
+            inventories.put(inventoryType, forgeryInventory);
         }
         return forgeryInventory;
     }

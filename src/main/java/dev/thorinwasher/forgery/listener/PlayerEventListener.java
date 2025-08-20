@@ -26,7 +26,7 @@ public record PlayerEventListener(PlacedStructureRegistry placedStructureRegistr
         placedStructureRegistry.getStructure(blockLocation)
                 .map(PlacedForgeryStructure::holder)
                 .ifPresent(interactable -> {
-                    StructureBehavior.InteractionResult result = interactable.interact(event.getPlayer(), blockLocation);
+                    StructureBehavior.InteractionResult result = interactable.interact(event.getPlayer(), blockLocation, event.getHand());
                     event.setUseInteractedBlock(result.useBlock());
                     event.setUseItemInHand(result.useItem());
                 });

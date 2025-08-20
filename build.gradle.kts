@@ -20,7 +20,9 @@ dependencies {
 
     implementation("dev.thorinwasher.schem:schem-reader:1.0.0")
     implementation("com.zaxxer:HikariCP:6.3.0")
+    implementation("org.spongepowered:configurate-gson:4.2.0")
     compileOnly("org.xerial:sqlite-jdbc:3.50.3.0")
+    compileOnly("org.spongepowered:configurate-yaml:4.2.0")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.3")
     testImplementation("org.junit.jupiter:junit-jupiter:5.13.3")
@@ -63,7 +65,8 @@ tasks {
             "net.kyori.adventure.nbt",
             "net.kyori.examination",
             "org.simpleyaml",
-            "org.yaml.snakeyaml"
+            "org.yaml.snakeyaml",
+            "org.spongepowered.configurate.gson"
         ).forEach { relocate(it, "${project.group}.lib.$it") }
     }
 

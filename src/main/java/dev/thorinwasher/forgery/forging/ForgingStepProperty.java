@@ -2,51 +2,50 @@ package dev.thorinwasher.forgery.forging;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
 import dev.thorinwasher.forgery.Forgery;
+import io.leangen.geantyref.TypeFactory;
+import io.leangen.geantyref.TypeToken;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Locale;
-import java.util.function.Function;
 
-public record ForgingStepProperty<T>(String name, Function<JsonElement, T> deserializer,
-                                     Function<T, JsonElement> serializer) implements Keyed {
-    
+public record ForgingStepProperty<T>(String name, TypeToken<T> typeToken) implements Keyed {
+
     public static final ForgingStepProperty<List<String>> ALLOWED_STRUCTURE_TYPES = new ForgingStepProperty<>(
             "allowed_structure_types",
-            jsonObject -> jsonObject.getAsJsonArray().asList().stream()
-                    .map(JsonElement::getAsString)
-                    .toList(),
-            ForgingStepProperty::toJsonArray
+            TypeFactory.parameterizedClass(List.class, String.class)
     );
     public static final ForgingStepProperty<Long> PROCESS_TIME = new ForgingStepProperty<>(
             "time",
-            JsonElement::getAsLong,
-            JsonPrimitive::new
+            Long.class
     );
     public static final ForgingStepProperty<Integer> PROCESS_AMOUNT = new ForgingStepProperty<>(
             "repeat",
-            JsonElement::getAsInt,
-            JsonPrimitive::new
+            Integer.class
     );
     public static final ForgingStepProperty<ForgingIngredients> INPUT_CONTENT = new ForgingStepProperty<>(
             "ingredients",
-            ForgingIngredients::fromJson,
-            ForgingIngredients::toJson
+            ForgingIngredients.class
     );
     public static final ForgingStepProperty<ToolInput> TOOL_INPUT = new ForgingStepProperty<>(
             "tool_input",
-            jsonElement -> ToolInput.fromString(jsonElement.getAsString().toUpperCase(Locale.ROOT)),
-            toolInput -> new JsonPrimitive(toolInput.asString())
+            ToolInput.class
     );
     public static final ForgingStepProperty<String> TARGET_INVENTORY = new ForgingStepProperty<>(
             "target_inventory",
-            JsonElement::getAsString,
-            JsonPrimitive::new
+            String.class
     );
+
+    public ForgingStepProperty(String allowedStructureTypes, Type type) {
+        this(allowedStructureTypes, (TypeToken<T>) TypeToken.get(type));
+    }
+
+    public ForgingStepProperty(String allowedStructureTypes, Class<T> tClass) {
+        this(allowedStructureTypes, TypeToken.get(tClass));
+    }
 
     private static JsonElement toJsonArray(List<String> strings) {
         JsonArray jsonElements = new JsonArray();
@@ -57,9 +56,5 @@ public record ForgingStepProperty<T>(String name, Function<JsonElement, T> deser
     @Override
     public @NotNull Key key() {
         return Key.key(Forgery.NAMESPACE, name());
-    }
-
-    public JsonElement serialize(Object object) {
-        return serializer.apply((T) object);
     }
 }

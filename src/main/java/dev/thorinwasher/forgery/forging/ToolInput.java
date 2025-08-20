@@ -1,11 +1,6 @@
 package dev.thorinwasher.forgery.forging;
 
-public record ToolInput() {
-    public static ToolInput fromString(String toolInput) {
-        return null;
-    }
+import dev.thorinwasher.forgery.util.ForgeryKey;
 
-    public String asString() {
-        return null;
-    }
+public record ToolInput(ForgeryKey key) {
 }

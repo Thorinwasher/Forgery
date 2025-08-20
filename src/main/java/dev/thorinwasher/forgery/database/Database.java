@@ -69,7 +69,7 @@ public class Database {
         return CompletableFuture.runAsync(() -> {
             try (Connection connection = hikariDataSource.getConnection()) {
                 dataType.remove(toRemove, connection);
-            } catch (SQLException e) {
+            } catch (Throwable e) {
                 e.printStackTrace();
             }
         }, executor);
@@ -82,7 +82,7 @@ public class Database {
         return CompletableFuture.runAsync(() -> {
             try (Connection connection = hikariDataSource.getConnection()) {
                 dataType.update(newValue, connection);
-            } catch (SQLException e) {
+            } catch (Throwable e) {
                 e.printStackTrace();
             }
         }, executor);
@@ -95,7 +95,7 @@ public class Database {
         return CompletableFuture.runAsync(() -> {
             try (Connection connection = hikariDataSource.getConnection()) {
                 dataType.insert(value, connection);
-            } catch (SQLException e) {
+            } catch (Throwable e) {
                 e.printStackTrace();
             }
         }, executor);
@@ -108,7 +108,7 @@ public class Database {
         return CompletableFuture.supplyAsync(() -> {
             try (Connection connection = hikariDataSource.getConnection()) {
                 return dataType.find(searchObject, connection);
-            } catch (SQLException e) {
+            } catch (Throwable e) {
                 e.printStackTrace();
                 return List.of();
             }
