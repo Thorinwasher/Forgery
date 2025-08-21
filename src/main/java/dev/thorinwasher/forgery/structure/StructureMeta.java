@@ -1,65 +1,45 @@
 package dev.thorinwasher.forgery.structure;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import dev.thorinwasher.forgery.Forgery;
 import dev.thorinwasher.forgery.inventory.ForgeryInventory;
+import io.leangen.geantyref.TypeFactory;
+import io.leangen.geantyref.TypeToken;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Keyed;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Registry;
-import org.bukkit.block.BlockType;
 
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
-public record StructureMeta<T>(Key key, Function<JsonElement, T> deserializer) implements Keyed {
+public record StructureMeta<T>(Key key, TypeToken<T> token) implements Keyed {
+
+    public StructureMeta(Key key, Type type) {
+        this(key, (TypeToken<T>) TypeToken.get(type));
+    }
 
     public static final StructureMeta<Map<String, ForgeryInventory.Behavior>> INVENTORIES = new StructureMeta<>(
             Key.key(Forgery.NAMESPACE, "inventories"),
-            jsonElement -> {
-                JsonObject jsonObject = jsonElement.getAsJsonObject();
-                ImmutableMap.Builder<String, ForgeryInventory.Behavior> builder = new ImmutableMap.Builder<>();
-                for (String key : jsonObject.keySet()) {
-                    builder.put(key, ForgeryInventory.Behavior.fromJson(jsonObject.get(key)));
-                }
-                return builder.build();
-            }
+            TypeFactory.parameterizedClass(Map.class, String.class, ForgeryInventory.Behavior.class)
     );
 
     public static final StructureMeta<List<BlockTransform>> BLOCK_TRANSFORMS = new StructureMeta<>(
             Forgery.key("block_transforms"),
-            jsonElement ->
-                    jsonElement.getAsJsonArray().asList().stream()
-                            .map(BlockTransform::fromJson)
-                            .toList()
+            TypeFactory.parameterizedClass(List.class, BlockTransform.class)
     );
 
     public static final StructureMeta<Integer> HEAT_RESULT = new StructureMeta<>(
             Forgery.key("heat_result"),
-            JsonElement::getAsInt
+            Integer.class
     );
 
     public static final StructureMeta<Set<String>> PROCESS_PARAMETERS = new StructureMeta<>(
             Forgery.key("process_parameters"),
-            jsonElement ->
-                    jsonElement.getAsJsonArray().asList().stream()
-                            .map(JsonElement::getAsString)
-                            .collect(Collectors.toUnmodifiableSet())
+            TypeFactory.parameterizedClass(Set.class, String.class)
     );
 
-    private static Set<BlockType> parseBlocks(JsonElement json) {
-        return json.getAsJsonArray().asList().stream()
-                .map(JsonElement::getAsString)
-                .map(NamespacedKey::fromString)
-                .filter(Objects::nonNull)
-                .map(Registry.BLOCK::get)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toUnmodifiableSet());
-    }
+    public static final StructureMeta<String> OUTPUT_INVENTORY = new StructureMeta<>(
+            Forgery.key("output_inventory"),
+            String.class
+    );
 }

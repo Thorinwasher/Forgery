@@ -17,6 +17,7 @@
         "size": 9
       }
     },
+    "output_inventory": "furnace",
     "block_transforms": [
       {
         "condition": {
