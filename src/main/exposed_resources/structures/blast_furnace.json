@@ -12,7 +12,7 @@
       },
       "fuel": {
         "access": "insertable",
-        "interface-locks": [
+        "interface-blocks": [
           "minecraft:campfire"
         ],
         "size": 9,

@@ -49,7 +49,8 @@ public class StructureBehaviorStoredData implements StoredData<StructureBehavior
                 Matrix3d transformation = DecoderUtil.asTransformation(resultSet.getInt("transformation"));
                 String schematic = resultSet.getString("schematic");
                 UUID blastFurnaceId = DecoderUtil.asUuid(resultSet.getBytes("uuid"));
-                StructureBehavior blastFurnace = new StructureBehavior(blastFurnaceId, persistencyAccess, itemAdapter);
+                long creationDate = resultSet.getLong("creation_date");
+                StructureBehavior blastFurnace = new StructureBehavior(blastFurnaceId, persistencyAccess, itemAdapter, creationDate);
                 registry.getStructure(schematic)
                         .map(structure -> new PlacedForgeryStructure(structure, transformation, location, blastFurnace))
                         .ifPresentOrElse(structure -> {
@@ -83,6 +84,7 @@ public class StructureBehaviorStoredData implements StoredData<StructureBehavior
             preparedStatement.setInt(6, DecoderUtil.asInteger(structure.transformation()));
             preparedStatement.setString(7, structure.structure().getName());
             preparedStatement.setString(8, BLAST_FURNACE);
+            preparedStatement.setLong(9, object.creationDate());
             preparedStatement.execute();
         }
     }

@@ -1,5 +1,6 @@
 package dev.thorinwasher.forgery.listener;
 
+import dev.thorinwasher.forgery.TimeProvider;
 import dev.thorinwasher.forgery.database.PersistencyAccess;
 import dev.thorinwasher.forgery.forgeries.StructureBehavior;
 import dev.thorinwasher.forgery.forging.ItemAdapter;
@@ -26,7 +27,8 @@ public record BlockEventListener(PlacedStructureRegistry placedStructureRegistry
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onBlockPlace(BlockPlaceEvent event) {
         for (ForgeryStructure forgeryStructure : structureRegistry.getPossibleStructures(event.getBlockPlaced().getType())) {
-            Optional<PlacedForgeryStructure> placedStructure = PlacedForgeryStructure.findValid(forgeryStructure, event.getBlockPlaced().getLocation(), () -> new StructureBehavior(UUID.randomUUID(), persistencyAccess, itemAdapter));
+            Optional<PlacedForgeryStructure> placedStructure = PlacedForgeryStructure.findValid(forgeryStructure, event.getBlockPlaced().getLocation(),
+                    () -> new StructureBehavior(UUID.randomUUID(), persistencyAccess, itemAdapter, TimeProvider.time()));
             placedStructure.ifPresent(structure -> {
                 event.getPlayer().sendMessage(Component.translatable("Successfully built: " + structure.structure().getName()));
                 placedStructureRegistry.registerStructure(structure);

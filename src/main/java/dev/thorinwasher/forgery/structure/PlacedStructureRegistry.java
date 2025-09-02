@@ -6,6 +6,7 @@ import dev.thorinwasher.forgery.vector.BlockVector;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 public class PlacedStructureRegistry {
 
@@ -65,5 +66,10 @@ public class PlacedStructureRegistry {
 
     public void clear() {
         structures.clear();
+    }
+
+    public Stream<PlacedForgeryStructure> getAllStream() {
+        return typedPlacedForgeryStructureMap.values().stream()
+                .flatMap(Set::stream);
     }
 }

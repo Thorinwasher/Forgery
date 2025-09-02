@@ -10,17 +10,13 @@ import dev.thorinwasher.forgery.integration.IntegrationRegistry;
 import dev.thorinwasher.forgery.listener.BlockEventListener;
 import dev.thorinwasher.forgery.listener.PlayerEventListener;
 import dev.thorinwasher.forgery.listener.WorldEventListener;
-import dev.thorinwasher.forgery.structure.PlacedStructureRegistry;
-import dev.thorinwasher.forgery.structure.StructureReadException;
-import dev.thorinwasher.forgery.structure.StructureReader;
-import dev.thorinwasher.forgery.structure.StructureRegistry;
+import dev.thorinwasher.forgery.structure.*;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.spongepowered.configurate.ConfigurationOptions;
-import org.spongepowered.configurate.gson.GsonConfigurationLoader;
 
 import java.io.*;
 import java.sql.SQLException;
@@ -76,6 +72,7 @@ public class Forgery extends JavaPlugin {
                                 .forEach(placedStructureRegistry::registerStructure)
                         )
                 );
+        Bukkit.getGlobalRegionScheduler().runAtFixedRate(this, this::tickStructures, 1, 1);
     }
 
     private void loadStructures() {
@@ -92,13 +89,6 @@ public class Forgery extends JavaPlugin {
                     }
                 })
                 .forEach(structureRegistry::addStructure);
-    }
-
-    private void saveResourceIfNotExists(String resource) {
-        if (new File(getDataFolder(), resource).exists()) {
-            return;
-        }
-        super.saveResource(resource, false);
     }
 
     public static Key key(String key) {
@@ -139,5 +129,11 @@ public class Forgery extends JavaPlugin {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void tickStructures(ScheduledTask task) {
+        placedStructureRegistry.getAllStream()
+                .map(PlacedForgeryStructure::behavior)
+                .forEach(StructureBehavior::tickStructure);
     }
 }

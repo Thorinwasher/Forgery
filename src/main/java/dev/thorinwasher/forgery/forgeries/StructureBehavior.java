@@ -1,10 +1,12 @@
 package dev.thorinwasher.forgery.forgeries;
 
 import com.google.common.base.Preconditions;
+import dev.thorinwasher.forgery.TimeProvider;
 import dev.thorinwasher.forgery.database.PersistencyAccess;
 import dev.thorinwasher.forgery.forging.ItemAdapter;
 import dev.thorinwasher.forgery.inventory.ForgeryInventory;
 import dev.thorinwasher.forgery.inventory.InventoryStoredData;
+import dev.thorinwasher.forgery.structure.BlockTransform;
 import dev.thorinwasher.forgery.structure.PlacedForgeryStructure;
 import dev.thorinwasher.forgery.structure.StructureMeta;
 import dev.thorinwasher.forgery.vector.BlockLocation;
@@ -27,14 +29,16 @@ public class StructureBehavior {
     private final UUID uuid;
     private final PersistencyAccess persistencyAccess;
     private final ItemAdapter itemAdapter;
+    private final long creationDate;
     private PlacedForgeryStructure structure;
     private final Map<String, ForgeryInventory> inventories = new HashMap<>();
     private final Map<BlockType, String> blockTypeInventoryTypeMap = new HashMap<>();
 
-    public StructureBehavior(UUID blastFurnaceId, PersistencyAccess persistencyAccess, ItemAdapter itemAdapter) {
+    public StructureBehavior(UUID blastFurnaceId, PersistencyAccess persistencyAccess, ItemAdapter itemAdapter, long creationDate) {
         this.uuid = blastFurnaceId;
         this.persistencyAccess = persistencyAccess;
         this.itemAdapter = itemAdapter;
+        this.creationDate = creationDate;
     }
 
     public PlacedForgeryStructure placedStructure() {
@@ -126,6 +130,63 @@ public class StructureBehavior {
         forgeryInventories.forEach(
                 inventory -> inventories.put(inventory.typeName(), inventory)
         );
+    }
+
+    public void tickStructure() {
+        tickBlocks();
+        tickEntities();
+        tickInventories();
+    }
+
+    private void tickEntities() {
+        // TODO: work with item displays and such
+    }
+
+    private void tickInventories() {
+        inventories.values()
+                .stream()
+                .filter(forgeryInventory -> forgeryInventory.behavior().access() == ForgeryInventory.AccessBehavior.OPENABLE)
+                .filter(forgeryInventory -> !forgeryInventory.getInventory().getViewers().isEmpty())
+                .forEach(inventory -> {
+                    inventory.updateContentsFromInterface();
+                    // TODO: Implement item transformations
+                    inventory.updateInterfaceFromContents();
+                });
+    }
+
+    private void tickBlocks() {
+        if (!structure.origin().toLocation().isChunkLoaded()) {
+            return;
+        }
+        List<BlockTransform> transforms = structure.structure().metaValue(StructureMeta.BLOCK_TRANSFORMS);
+        if (transforms == null) {
+            return;
+        }
+        for (BlockTransform blockTransform : transforms) {
+            boolean allMatch = blockTransform.conditions().stream().allMatch(condition -> switch (condition) {
+                case BlockTransform.StructureAgeCondition structureAgeCondition ->
+                        structureAgeCondition.age() > this.age();
+                case BlockTransform.InventoryEmptyCondition inventoryEmptyCondition -> {
+                    ForgeryInventory inventory = this.inventories.get(inventoryEmptyCondition.inventoryTypeName());
+                    yield inventory == null || inventory.items().isEmpty();
+                }
+            });
+            if (allMatch) {
+                placedStructure().positions()
+                        .forEach(blockTransform::applyToBlock);
+            } else {
+                placedStructure().positions()
+                        .forEach(blockTransform::deapplyToBlock);
+            }
+        }
+    }
+
+    private long age() {
+        return Math.max(0, TimeProvider.time() - creationDate);
+    }
+
+    public long creationDate() {
+        return this.creationDate;
     }
 
     public record InteractionResult(Event.Result useBlock, Event.Result useItem) {

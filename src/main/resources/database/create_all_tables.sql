@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS structure
     transformation INTEGER,
     schematic      TEXT,
     structure_type TEXT,
+    creation_date  INTEGER,
     PRIMARY KEY (uuid)
 );
 
