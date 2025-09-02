@@ -1,23 +1,19 @@
 package dev.thorinwasher.forgery.inventory;
 
 import com.google.common.collect.ImmutableList;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import dev.thorinwasher.forgery.database.Database;
 import dev.thorinwasher.forgery.database.PersistencyAccess;
 import dev.thorinwasher.forgery.forging.ItemAdapter;
-import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
-import org.bukkit.Registry;
 import org.bukkit.block.BlockType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ForgeryInventory implements InventoryHolder {
 
@@ -161,28 +157,9 @@ public class ForgeryInventory implements InventoryHolder {
 
     }
 
+    @ConfigSerializable
     public record Behavior(AccessBehavior access, ItemDisplayBehavior itemDisplay, int size,
                            Set<BlockType> interfaceBlocks) {
-
-        public static Behavior fromJson(JsonElement jsonElement) {
-            JsonObject jsonObject = jsonElement.getAsJsonObject();
-            String accessBehavior = jsonObject.get("access_behavior").getAsString();
-            Set<BlockType> interfaceBlocks = jsonObject.get("interface_blocks").getAsJsonArray().asList().stream()
-                    .map(JsonElement::getAsString)
-                    .map(Key::key)
-                    .map(Registry.BLOCK::get)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toUnmodifiableSet());
-            int size = jsonObject.get("size").getAsInt();
-            ItemDisplayBehavior itemDisplay = jsonObject.has("item_display") ?
-                    ItemDisplayBehavior.valueOf(jsonObject.get("item_display").getAsString().toUpperCase(Locale.ROOT)) : ItemDisplayBehavior.NONE;
-            return new Behavior(
-                    AccessBehavior.valueOf(accessBehavior.toUpperCase(Locale.ROOT)),
-                    itemDisplay,
-                    size,
-                    interfaceBlocks
-            );
-        }
     }
 
     public enum AccessBehavior {

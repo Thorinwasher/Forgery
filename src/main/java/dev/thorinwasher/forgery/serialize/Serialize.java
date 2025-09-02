@@ -7,11 +7,17 @@ import dev.thorinwasher.forgery.forging.ForgingSteps;
 import dev.thorinwasher.forgery.forging.ToolInput;
 import dev.thorinwasher.forgery.inventory.ForgingItem;
 import dev.thorinwasher.forgery.inventory.ForgingMaterial;
+import dev.thorinwasher.forgery.structure.BlockTransform;
+import dev.thorinwasher.forgery.structure.KeyedSerializer;
 import dev.thorinwasher.forgery.util.ForgeryKey;
 import io.leangen.geantyref.TypeToken;
+import io.papermc.paper.registry.RegistryKey;
+import org.bukkit.block.BlockType;
+import org.bukkit.block.data.BlockData;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.gson.GsonConfigurationLoader;
+import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.util.Optional;
 
@@ -29,6 +35,9 @@ public class Serialize {
                         .register(ForgingItem.class, new ForgingItemSerializer())
                         .register(ForgingMaterial.class, new ForgingMaterialSerializer())
                         .register(ForgeryKey.class, new ForgeryKeySerializer())
+                        .register(BlockType.class, new KeyedSerializer<>(RegistryKey.BLOCK))
+                        .register(BlockData.class, new BlockDataSerializer())
+                        .register(BlockTransform.class, new BlockTransformSerializer())
         );
     }
 
@@ -53,11 +62,21 @@ public class Serialize {
                             .get(token)
             );
         } catch (ConfigurateException e) {
+            e.printStackTrace();
             return Optional.empty();
         }
     }
 
     public static <T> Optional<T> fromJson(Class<T> tClass, String json) {
         return fromJson(TypeToken.get(tClass), json);
+    }
+
+    public static <T, U> Optional<T> convert(U u, TypeToken<T> tType) {
+        try {
+            return Optional.ofNullable(GSON_CONFIGURATION_LOADER_BUILDER.build().createNode().set(u).get(tType));
+        } catch (SerializationException e) {
+            e.printStackTrace();
+            return Optional.empty();
+        }
     }
 }

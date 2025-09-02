@@ -20,7 +20,9 @@ dependencies {
 
     implementation("dev.thorinwasher.schem:schem-reader:1.0.0")
     implementation("com.zaxxer:HikariCP:6.3.0")
-    implementation("org.spongepowered:configurate-gson:4.2.0")
+    implementation("org.spongepowered:configurate-gson:4.2.0") {
+        exclude("com.google.code.gson:gson")
+    }
     compileOnly("org.xerial:sqlite-jdbc:3.50.3.0")
     compileOnly("org.spongepowered:configurate-yaml:4.2.0")
 

@@ -4,11 +4,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.thorinwasher.forgery.Forgery;
 import dev.thorinwasher.forgery.ForgeryRegistry;
+import dev.thorinwasher.forgery.serialize.Serialize;
 import dev.thorinwasher.forgery.util.Pair;
 import dev.thorinwasher.schem.Schematic;
 import dev.thorinwasher.schem.SchematicReader;
 import net.kyori.adventure.key.Key;
-import org.bukkit.NamespacedKey;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -58,7 +58,7 @@ public class StructureReader {
                         if (meta == null) {
                             throw new StructureReadException("Unknown meta: " + entry.getKey());
                         }
-                        Object value = meta.deserializer().apply(entry.getValue());
+                        Object value = Serialize.fromJson(meta.token(), entry.getValue().toString()).orElseThrow(() -> new IllegalArgumentException("Invalid data for meta: " + entry.getKey()));
                         return new Pair<>(meta, value);
                     })
                     .collect(Collectors.toMap(Pair::first, Pair::second));

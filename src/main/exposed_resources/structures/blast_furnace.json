@@ -3,20 +3,23 @@
   "meta": {
     "inventories": {
       "furnace": {
-        "access_behavior": "insertable",
-        "interface_blocks": [
+        "access": "insertable",
+        "interface-blocks": [
           "minecraft:decorated_pot"
         ],
-        "size": 27
+        "size": 27,
+        "item-display": "none"
       },
       "fuel": {
-        "access_behavior": "insertable",
-        "interface_blocks": [
+        "access": "insertable",
+        "interface-locks": [
           "minecraft:campfire"
         ],
-        "size": 9
+        "size": 9,
+        "item-display": "none"
       }
     },
+    "output_inventory": "furnace",
     "block_transforms": [
       {
         "condition": {
