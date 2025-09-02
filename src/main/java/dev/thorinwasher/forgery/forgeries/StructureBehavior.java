@@ -90,6 +90,7 @@ public class StructureBehavior {
         if (itemStack.isEmpty()) {
             return InteractionResult.DENY;
         }
+        itemStack.setAmount(itemStack.getAmount() - 1);
         itemAdapter.toForgery(itemStack)
                 .ifPresent(forgeryInventory::addItem);
         return InteractionResult.DENY;
