@@ -37,4 +37,15 @@ public record ForgeryKey(String namespace, String key) {
     public String asString() {
         return namespace + ":" + key;
     }
+
+    public String minimize(String defaultNamespace) {
+        if (namespace.equals(defaultNamespace)) {
+            return key;
+        }
+        return asString();
+    }
+
+    public String forgery() {
+        return minimize(Forgery.NAMESPACE);
+    }
 }

@@ -1,6 +1,5 @@
 package dev.thorinwasher.forgery.inventory;
 
-import dev.thorinwasher.forgery.Forgery;
 import dev.thorinwasher.forgery.util.ForgeryKey;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,6 +10,6 @@ public record ForgingMaterial(@Nullable ForgeryKey key, int score) {
     }
 
     public boolean providesExtraData() {
-        return (key != null && key.namespace().equals(Forgery.NAMESPACE)) || score != 10;
+        return (key != null && !key.namespace().equals("minecraft")) || score != 10;
     }
 }
