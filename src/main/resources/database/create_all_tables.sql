@@ -7,8 +7,8 @@ CREATE TABLE IF NOT EXISTS version
 
 CREATE TABLE IF NOT EXISTS structure
 (
-    uuid           BINARY,
-    world_uuid     BINARY,
+    uuid           BINARY(16),
+    world_uuid     BINARY(16),
     origin_x       INTEGER,
     origin_y       INTEGER,
     origin_z       INTEGER,
@@ -23,7 +23,7 @@ CREATE INDEX IF NOT EXISTS main.structure_world ON structure (world_uuid, struct
 
 CREATE TABLE IF NOT EXISTS inventory
 (
-    structure_uuid BINARY,
+    structure_uuid BINARY(16),
     inventory_type TEXT,
     inventory_size INTEGER,
     FOREIGN KEY (structure_uuid)
@@ -34,11 +34,22 @@ CREATE TABLE IF NOT EXISTS inventory
 
 CREATE TABLE IF NOT EXISTS inventory_content
 (
-    structure_uuid BINARY,
+    structure_uuid BINARY(16),
     pos            INTEGER,
     item_content   JSON,
     inventory_type TEXT,
     FOREIGN KEY (structure_uuid, inventory_type)
         REFERENCES inventory (structure_uuid, inventory_type)
+        ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS structure_state
+(
+    structure_uuid BINARY(16),
+    state          TEXT,
+    time_stamp     INTEGER,
+    change         TEXT,
+    FOREIGN KEY (structure_uuid)
+        REFERENCES structure (uuid)
         ON UPDATE CASCADE ON DELETE CASCADE
 );

@@ -4,9 +4,7 @@ import dev.thorinwasher.forgery.vector.BlockLocation;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 
-import java.util.List;
-
-public record BlockTransform(List<Condition> conditions, BlockData from, BlockData to,
+public record BlockTransform(String toState, BlockData from, BlockData to,
                              BlockConversion blockConversion) {
 
 
@@ -29,15 +27,6 @@ public record BlockTransform(List<Condition> conditions, BlockData from, BlockDa
             return;
         }
         block.setBlockData(initial.merge(toApply));
-    }
-
-    public sealed interface Condition {
-    }
-
-    public record InventoryEmptyCondition(String inventoryTypeName) implements Condition {
-    }
-
-    public record StructureAgeCondition(long age) implements Condition {
     }
 
     public enum BlockConversion {

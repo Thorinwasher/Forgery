@@ -68,7 +68,7 @@ class StructureBehaviorStoredDataTest {
 
     @Test
     public void test() {
-        StructureBehavior structureBehavior = new StructureBehavior(UUID.randomUUID(), persistencyAccess, itemAdapter);
+        StructureBehavior structureBehavior = new StructureBehavior(UUID.randomUUID(), persistencyAccess, itemAdapter, 0);
         ForgeryStructure forgeryStructure = structureRegistry.getStructure("my_structure").get();
         structureBehavior.setStructure(new PlacedForgeryStructure(
                 forgeryStructure, new Matrix3d(), new BlockLocation(0, 0, 0, UUID.randomUUID()), structureBehavior

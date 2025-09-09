@@ -67,6 +67,13 @@ public class StructureBehaviorStoredData implements StoredData<StructureBehavior
                             .map(InventoryStoredData.InventoryInfo::inventory)
                             .toList()
             );
+            blastFurnace.setStateHistory(
+                    persistencyAccess.structureStateStoredData()
+                            .find(blastFurnace.uuid(), connection)
+                            .stream()
+                            .map(StructureStateStoredData.StructureStateData::stateChange)
+                            .toList()
+            );
         }
         return output;
     }

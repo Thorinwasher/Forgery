@@ -6,6 +6,6 @@ public class TimeProvider {
 
     public static long time() {
         // TODO: Temp
-        return Bukkit.getWorlds().getFirst().getTime();
+        return Bukkit.getWorlds().getFirst().getGameTime();
     }
 }

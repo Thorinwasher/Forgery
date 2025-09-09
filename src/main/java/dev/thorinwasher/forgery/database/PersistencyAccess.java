@@ -1,6 +1,7 @@
 package dev.thorinwasher.forgery.database;
 
 import dev.thorinwasher.forgery.forgeries.StructureBehaviorStoredData;
+import dev.thorinwasher.forgery.forgeries.StructureStateStoredData;
 import dev.thorinwasher.forgery.forging.ItemAdapter;
 import dev.thorinwasher.forgery.inventory.InventoryContentStoredData;
 import dev.thorinwasher.forgery.inventory.InventoryStoredData;
@@ -15,6 +16,7 @@ public final class PersistencyAccess {
     private StructureBehaviorStoredData behaviorStoredData;
     private InventoryStoredData inventoryStoredData;
     private InventoryContentStoredData inventoryContentStoredData;
+    private StructureStateStoredData structureStateStoredData;
 
     public PersistencyAccess(Database database, StructureRegistry structureRegistry, ItemAdapter itemAdapter) {
         this.database = database;
@@ -26,6 +28,7 @@ public final class PersistencyAccess {
         this.inventoryContentStoredData = new InventoryContentStoredData();
         this.inventoryStoredData = new InventoryStoredData(this, itemAdapter);
         this.behaviorStoredData = new StructureBehaviorStoredData(structureRegistry, this, itemAdapter);
+        this.structureStateStoredData = new StructureStateStoredData();
     }
 
     public Database database() {
@@ -42,6 +45,10 @@ public final class PersistencyAccess {
 
     public InventoryContentStoredData inventoryContentStoredData() {
         return inventoryContentStoredData;
+    }
+
+    public StructureStateStoredData structureStateStoredData() {
+        return structureStateStoredData;
     }
 
     @Override

@@ -8,6 +8,7 @@ import dev.thorinwasher.forgery.forging.ToolInput;
 import dev.thorinwasher.forgery.inventory.ForgingItem;
 import dev.thorinwasher.forgery.inventory.ForgingMaterial;
 import dev.thorinwasher.forgery.structure.BlockTransform;
+import dev.thorinwasher.forgery.structure.Condition;
 import dev.thorinwasher.forgery.structure.KeyedSerializer;
 import dev.thorinwasher.forgery.util.ForgeryKey;
 import io.leangen.geantyref.TypeToken;
@@ -38,6 +39,7 @@ public class Serialize {
                         .register(BlockType.class, new KeyedSerializer<>(RegistryKey.BLOCK))
                         .register(BlockData.class, new BlockDataSerializer())
                         .register(BlockTransform.class, new BlockTransformSerializer())
+                        .register(Condition.class, new ConditionSerializer())
         );
     }
 

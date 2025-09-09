@@ -10,7 +10,7 @@ public record RecipeResult(Data data, boolean overrideLore) {
         ItemStack get();
     }
 
-    public class DataBased implements Data {
+    public static class DataBased implements Data {
 
         private final ItemStack itemStack;
 
@@ -27,7 +27,7 @@ public record RecipeResult(Data data, boolean overrideLore) {
     public record PluginItem(ForgingMaterial material) implements Data {
         @Override
         public ItemStack get() {
-            
+            return null;
         }
     }
 }

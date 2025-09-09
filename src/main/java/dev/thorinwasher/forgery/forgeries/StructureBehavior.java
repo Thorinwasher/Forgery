@@ -7,6 +7,7 @@ import dev.thorinwasher.forgery.forging.ItemAdapter;
 import dev.thorinwasher.forgery.inventory.ForgeryInventory;
 import dev.thorinwasher.forgery.inventory.InventoryStoredData;
 import dev.thorinwasher.forgery.structure.BlockTransform;
+import dev.thorinwasher.forgery.structure.Condition;
 import dev.thorinwasher.forgery.structure.PlacedForgeryStructure;
 import dev.thorinwasher.forgery.structure.StructureMeta;
 import dev.thorinwasher.forgery.vector.BlockLocation;
@@ -20,10 +21,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class StructureBehavior {
     private final UUID uuid;
@@ -33,12 +32,16 @@ public class StructureBehavior {
     private PlacedForgeryStructure structure;
     private final Map<String, ForgeryInventory> inventories = new HashMap<>();
     private final Map<BlockType, String> blockTypeInventoryTypeMap = new HashMap<>();
+    private Set<String> states;
+    private Map<String, List<StructureStateChange>> stateHistory;
 
     public StructureBehavior(UUID blastFurnaceId, PersistencyAccess persistencyAccess, ItemAdapter itemAdapter, long creationDate) {
         this.uuid = blastFurnaceId;
         this.persistencyAccess = persistencyAccess;
         this.itemAdapter = itemAdapter;
         this.creationDate = creationDate;
+        this.states = Set.of();
+        this.stateHistory = Map.of();
     }
 
     public PlacedForgeryStructure placedStructure() {
@@ -134,9 +137,62 @@ public class StructureBehavior {
     }
 
     public void tickStructure() {
+        Set<String> previousStates = states;
+        this.states = readStates();
+        if (!states.containsAll(previousStates) || !previousStates.containsAll(states)) {
+            List<StructureStateChange> difference = computeStateDifference(previousStates, states);
+            difference.forEach(structureStateRecord ->
+                    stateHistory.computeIfAbsent(structureStateRecord.stateName(), ignored -> new ArrayList<>())
+                            .add(structureStateRecord)
+            );
+            difference.forEach(change ->
+                    persistencyAccess.database().insert(
+                            persistencyAccess.structureStateStoredData(),
+                            new StructureStateStoredData.StructureStateData(this.uuid(), change)
+                    ));
+        }
         tickBlocks();
         tickEntities();
         tickInventories();
+    }
+
+    private List<StructureStateChange> computeStateDifference(Set<String> previousState, Set<String> currentState) {
+        Set<String> all = new HashSet<>(previousState);
+        all.addAll(currentState);
+        List<StructureStateChange> output = new ArrayList<>();
+        for (String value : all) {
+            if (previousState.contains(value) && currentState.contains(value)) {
+                continue;
+            }
+            if (previousState.contains(value)) {
+                output.add(new StructureStateChange(value, TimeProvider.time(), StructureStateChange.Action.REMOVE));
+            } else {
+                output.add(new StructureStateChange(value, TimeProvider.time(), StructureStateChange.Action.ADD));
+            }
+        }
+        return output;
+    }
+
+    private Set<String> readStates() {
+        Map<String, List<Condition>> states = structure.metaValue(StructureMeta.STATE);
+        if (states == null) {
+            return Set.of();
+        }
+        return states.entrySet().stream()
+                .filter(entry -> conditionsAreFilled(entry.getValue()))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
+    private boolean conditionsAreFilled(List<Condition> conditions) {
+        return conditions.stream().allMatch(condition -> switch (condition) {
+            case Condition.StructureAgeCondition structureAgeCondition -> structureAgeCondition.age() > this.age();
+            case Condition.InventoryEmptyCondition inventoryEmptyCondition -> {
+                ForgeryInventory inventory = this.inventories.get(inventoryEmptyCondition.inventoryTypeName());
+                yield inventory == null || inventory.items().isEmpty();
+            }
+            case Condition.InvertedCondition invertedCondition -> !conditionsAreFilled(List.of(invertedCondition.condition()));
+        });
     }
 
     private void tickEntities() {
@@ -164,15 +220,7 @@ public class StructureBehavior {
             return;
         }
         for (BlockTransform blockTransform : transforms) {
-            boolean allMatch = blockTransform.conditions().stream().allMatch(condition -> switch (condition) {
-                case BlockTransform.StructureAgeCondition structureAgeCondition ->
-                        structureAgeCondition.age() > this.age();
-                case BlockTransform.InventoryEmptyCondition inventoryEmptyCondition -> {
-                    ForgeryInventory inventory = this.inventories.get(inventoryEmptyCondition.inventoryTypeName());
-                    yield inventory == null || inventory.items().isEmpty();
-                }
-            });
-            if (allMatch) {
+            if (states.contains(blockTransform.toState())) {
                 placedStructure().positions()
                         .forEach(blockTransform::applyToBlock);
             } else {
@@ -188,6 +236,18 @@ public class StructureBehavior {
 
     public long creationDate() {
         return this.creationDate;
+    }
+
+    public void setStateHistory(List<StructureStateChange> changes) {
+        this.stateHistory = new HashMap<>();
+        for (StructureStateChange change : changes) {
+            stateHistory.computeIfAbsent(change.stateName(), ignored -> new ArrayList<>())
+                    .add(change);
+        }
+        this.states = stateHistory.entrySet().stream()
+                .filter(entry -> !entry.getValue().isEmpty() && entry.getValue().getLast().action() == StructureStateChange.Action.ADD)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     public record InteractionResult(Event.Result useBlock, Event.Result useItem) {

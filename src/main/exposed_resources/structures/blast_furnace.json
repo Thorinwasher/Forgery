@@ -20,16 +20,41 @@
       }
     },
     "output_inventory": "furnace",
+    "inventory_transforms": [
+      {
+        "state": "powered",
+        "decrement_inventory": 1
+      }
+    ],
     "block_transforms": [
       {
-        "condition": {
-          "inventory_empty": "fuel"
-        },
-        "from": "minecraft:campfire[lit=true]",
-        "to": "minecraft:campfire[lit=false]",
+        "to_state": "powered",
+        "from": "minecraft:campfire[lit=false]",
+        "to": "minecraft:campfire[lit=true]",
         "block_conversion": "keep_other_data"
       }
     ],
+    "states": {
+      "powered": [
+        {
+          "not": {
+            "inventory_empty": "furnace"
+          }
+        },
+        {
+          "not": {
+            "inventory_empty": "fuel"
+          }
+        }
+      ],
+      "has_fuel": [
+        {
+          "not": {
+            "inventory_empty": "fuel"
+          }
+        }
+      ]
+    },
     "process_parameters": [
       "time",
       "ingredients",

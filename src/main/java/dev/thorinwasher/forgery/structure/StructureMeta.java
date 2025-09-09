@@ -19,7 +19,7 @@ public record StructureMeta<T>(Key key, TypeToken<T> token) implements Keyed {
     }
 
     public static final StructureMeta<Map<String, ForgeryInventory.Behavior>> INVENTORIES = new StructureMeta<>(
-            Key.key(Forgery.NAMESPACE, "inventories"),
+            Forgery.key("inventories"),
             TypeFactory.parameterizedClass(Map.class, String.class, ForgeryInventory.Behavior.class)
     );
 
@@ -41,5 +41,15 @@ public record StructureMeta<T>(Key key, TypeToken<T> token) implements Keyed {
     public static final StructureMeta<String> OUTPUT_INVENTORY = new StructureMeta<>(
             Forgery.key("output_inventory"),
             String.class
+    );
+
+    public static final StructureMeta<Map<String, List<Condition>>> STATE = new StructureMeta<>(
+            Forgery.key("states"),
+            TypeFactory.parameterizedClass(Map.class, String.class, TypeFactory.parameterizedClass(List.class, Condition.class))
+    );
+
+    public static final StructureMeta<List<InventoryTransform>> INVENTORY_TRANSFORMS = new StructureMeta<>(
+            Forgery.key("inventory_transforms"),
+            TypeFactory.parameterizedClass(List.class, InventoryTransform.class)
     );
 }
