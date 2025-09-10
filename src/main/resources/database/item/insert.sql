@@ -1,0 +1,2 @@
+INSERT INTO item
+    VALUES(?, ?);

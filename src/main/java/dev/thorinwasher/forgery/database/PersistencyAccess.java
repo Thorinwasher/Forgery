@@ -5,9 +5,8 @@ import dev.thorinwasher.forgery.forgeries.StructureStateStoredData;
 import dev.thorinwasher.forgery.forging.ItemAdapter;
 import dev.thorinwasher.forgery.inventory.InventoryContentStoredData;
 import dev.thorinwasher.forgery.inventory.InventoryStoredData;
+import dev.thorinwasher.forgery.recipe.ItemStoredData;
 import dev.thorinwasher.forgery.structure.StructureRegistry;
-
-import java.util.Objects;
 
 public final class PersistencyAccess {
     private final Database database;
@@ -17,6 +16,7 @@ public final class PersistencyAccess {
     private InventoryStoredData inventoryStoredData;
     private InventoryContentStoredData inventoryContentStoredData;
     private StructureStateStoredData structureStateStoredData;
+    private ItemStoredData itemStoredData;
 
     public PersistencyAccess(Database database, StructureRegistry structureRegistry, ItemAdapter itemAdapter) {
         this.database = database;
@@ -29,6 +29,7 @@ public final class PersistencyAccess {
         this.inventoryStoredData = new InventoryStoredData(this, itemAdapter);
         this.behaviorStoredData = new StructureBehaviorStoredData(structureRegistry, this, itemAdapter);
         this.structureStateStoredData = new StructureStateStoredData();
+        this.itemStoredData = new ItemStoredData();
     }
 
     public Database database() {
@@ -51,29 +52,8 @@ public final class PersistencyAccess {
         return structureStateStoredData;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) return true;
-        if (obj == null || obj.getClass() != this.getClass()) return false;
-        var that = (PersistencyAccess) obj;
-        return Objects.equals(this.database, that.database) &&
-                Objects.equals(this.behaviorStoredData, that.behaviorStoredData) &&
-                Objects.equals(this.inventoryStoredData, that.inventoryStoredData) &&
-                Objects.equals(this.inventoryContentStoredData, that.inventoryContentStoredData);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(database, behaviorStoredData, inventoryStoredData, inventoryContentStoredData);
-    }
-
-    @Override
-    public String toString() {
-        return "PersistencyAccess[" +
-                "database=" + database + ", " +
-                "behaviorStoredData=" + behaviorStoredData + ", " +
-                "inventoryStoredData=" + inventoryStoredData + ", " +
-                "inventoryContentStoredData=" + inventoryContentStoredData + ']';
+    public ItemStoredData itemStoredData() {
+        return itemStoredData;
     }
 
 }

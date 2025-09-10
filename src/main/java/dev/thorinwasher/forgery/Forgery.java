@@ -2,6 +2,7 @@ package dev.thorinwasher.forgery;
 
 import com.google.common.base.Preconditions;
 import dev.thorinwasher.forgery.api.ForgeryApi;
+import dev.thorinwasher.forgery.command.ForgeryCommand;
 import dev.thorinwasher.forgery.database.Database;
 import dev.thorinwasher.forgery.database.PersistencyAccess;
 import dev.thorinwasher.forgery.forgeries.StructureBehavior;
@@ -10,16 +11,21 @@ import dev.thorinwasher.forgery.integration.IntegrationRegistry;
 import dev.thorinwasher.forgery.listener.BlockEventListener;
 import dev.thorinwasher.forgery.listener.PlayerEventListener;
 import dev.thorinwasher.forgery.listener.WorldEventListener;
+import dev.thorinwasher.forgery.recipe.ItemReference;
 import dev.thorinwasher.forgery.structure.*;
+import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -32,6 +38,7 @@ public class Forgery extends JavaPlugin {
     private PersistencyAccess persistencyAccess;
     private IntegrationRegistry integrationRegistry;
     private ItemAdapter itemAdapter;
+    private Map<Key, ItemReference> itemReferences;
     private boolean loadSuccess = false;
 
     @Override
@@ -72,6 +79,10 @@ public class Forgery extends JavaPlugin {
                                 .forEach(placedStructureRegistry::registerStructure)
                         )
                 );
+        itemReferences = database.find(persistencyAccess.itemStoredData(), null).join()
+                .stream()
+                .collect(Collectors.toMap(ItemReference::getKey, itemReference -> itemReference));
+        this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, new ForgeryCommand(itemReferences, persistencyAccess)::register);
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(this, this::tickStructures, 1, 1);
     }
 
@@ -91,8 +102,8 @@ public class Forgery extends JavaPlugin {
                 .forEach(structureRegistry::addStructure);
     }
 
-    public static Key key(String key) {
-        return Key.key(NAMESPACE, key);
+    public static NamespacedKey key(String key) {
+        return new NamespacedKey(NAMESPACE, key);
     }
 
     private void saveExposedResources() {

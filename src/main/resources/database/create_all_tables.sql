@@ -53,3 +53,10 @@ CREATE TABLE IF NOT EXISTS structure_state
         REFERENCES structure (uuid)
         ON UPDATE CASCADE ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS item
+(
+    item_key  TEXT,
+    item_data BLOB,
+    PRIMARY KEY (item_key)
+);

@@ -28,7 +28,7 @@ public class ForgeryRegistry<T extends Keyed> {
 
     private final ImmutableMap<Key, T> backing;
 
-    private ForgeryRegistry(Collection<T> values) {
+    public ForgeryRegistry(Collection<T> values) {
         ImmutableMap.Builder<Key, T> registryBacking = ImmutableMap.builder();
         values.forEach(value -> registryBacking.put(value.key(), value));
         this.backing = registryBacking.build();
