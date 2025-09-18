@@ -6,13 +6,11 @@ high_carbon_steel:
         iron_ore: 10
         coal: 7
     - process_time: 5m
-      target_inventory: fuel
+      is_state: has_fuel
       repeat: 2
-      ingredients:
-        coal: 5
   result:
     name: High carbon steel bar
-    material: minecraft:iron_ingot
+    stored_item: forgery:pig_iron
     amount: 10
 soft_damascus_sword:
   structure_type: anvil

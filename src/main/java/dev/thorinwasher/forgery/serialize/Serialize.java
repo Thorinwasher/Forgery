@@ -19,6 +19,7 @@ import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.gson.GsonConfigurationLoader;
 import org.spongepowered.configurate.serialize.SerializationException;
+import org.spongepowered.configurate.serialize.TypeSerializerCollection;
 
 import java.util.Optional;
 
@@ -28,19 +29,21 @@ public class Serialize {
             .defaultOptions(Serialize::registerDefaultOptions);
 
     private static ConfigurationOptions registerDefaultOptions(ConfigurationOptions configurationOptions) {
-        return configurationOptions.serializers(builder ->
-                builder.register(ForgingSteps.class, new ForgingStepsSerializer())
-                        .register(ForgingStep.class, new ForgingStepSerializer())
-                        .register(ForgingIngredients.class, new ForgingIngredientsSerializer())
-                        .register(ToolInput.class, new ToolInputSerializer())
-                        .register(ForgingItem.class, new ForgingItemSerializer())
-                        .register(ForgingMaterial.class, new ForgingMaterialSerializer())
-                        .register(ForgeryKey.class, new ForgeryKeySerializer())
-                        .register(BlockType.class, new KeyedSerializer<>(RegistryKey.BLOCK))
-                        .register(BlockData.class, new BlockDataSerializer())
-                        .register(BlockTransform.class, new BlockTransformSerializer())
-                        .register(Condition.class, new ConditionSerializer())
-        );
+        return configurationOptions.serializers(Serialize::registerSerializers);
+    }
+
+    public static void registerSerializers(TypeSerializerCollection.Builder builder) {
+        builder.register(ForgingSteps.class, new ForgingStepsSerializer())
+                .register(ForgingStep.class, new ForgingStepSerializer())
+                .register(ForgingIngredients.class, new ForgingIngredientsSerializer())
+                .register(ToolInput.class, new ToolInputSerializer())
+                .register(ForgingItem.class, new ForgingItemSerializer())
+                .register(ForgingMaterial.class, new ForgingMaterialSerializer())
+                .register(ForgeryKey.class, new ForgeryKeySerializer())
+                .register(BlockType.class, new KeyedSerializer<>(RegistryKey.BLOCK))
+                .register(BlockData.class, new BlockDataSerializer())
+                .register(BlockTransform.class, new BlockTransformSerializer())
+                .register(Condition.class, new ConditionSerializer());
     }
 
     public static <T> Optional<String> asJson(TypeToken<T> token, T value) {

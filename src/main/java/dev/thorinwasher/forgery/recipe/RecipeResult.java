@@ -1,33 +1,16 @@
 package dev.thorinwasher.forgery.recipe;
 
-import dev.thorinwasher.forgery.inventory.ForgingMaterial;
+import net.kyori.adventure.text.Component;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
-public record RecipeResult(Data data, boolean overrideLore) {
+import java.util.List;
 
-    interface Data {
+public record RecipeResult(ItemWriter itemWriter, int amount, boolean overrideLore, List<Component> lore,
+                           @Nullable Component name) {
+
+    public interface ItemWriter {
 
         ItemStack get();
-    }
-
-    public static class DataBased implements Data {
-
-        private final ItemStack itemStack;
-
-        public DataBased(ItemStack itemStack) {
-            this.itemStack = itemStack;
-        }
-
-        @Override
-        public ItemStack get() {
-            return itemStack.clone();
-        }
-    }
-
-    public record PluginItem(ForgingMaterial material) implements Data {
-        @Override
-        public ItemStack get() {
-            return null;
-        }
     }
 }

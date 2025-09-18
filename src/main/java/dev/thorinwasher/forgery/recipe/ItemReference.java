@@ -6,7 +6,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-public final class ItemReference implements Keyed {
+public final class ItemReference implements Keyed, RecipeResult.ItemWriter {
     private final NamespacedKey key;
     private final ItemStack itemStack;
 
@@ -24,4 +24,8 @@ public final class ItemReference implements Keyed {
         return itemStack.clone();
     }
 
+    @Override
+    public ItemStack get() {
+        return itemStack();
+    }
 }

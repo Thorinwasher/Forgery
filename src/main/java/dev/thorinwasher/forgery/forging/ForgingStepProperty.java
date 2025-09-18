@@ -3,6 +3,7 @@ package dev.thorinwasher.forgery.forging;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import dev.thorinwasher.forgery.Forgery;
+import dev.thorinwasher.forgery.util.Duration;
 import io.leangen.geantyref.TypeFactory;
 import io.leangen.geantyref.TypeToken;
 import net.kyori.adventure.key.Key;
@@ -18,9 +19,9 @@ public record ForgingStepProperty<T>(String name, TypeToken<T> typeToken) implem
             "allowed_structure_types",
             TypeFactory.parameterizedClass(List.class, String.class)
     );
-    public static final ForgingStepProperty<Long> PROCESS_TIME = new ForgingStepProperty<>(
+    public static final ForgingStepProperty<Duration> PROCESS_TIME = new ForgingStepProperty<>(
             "time",
-            Long.class
+            Duration.class
     );
     public static final ForgingStepProperty<Integer> PROCESS_AMOUNT = new ForgingStepProperty<>(
             "repeat",
@@ -36,6 +37,14 @@ public record ForgingStepProperty<T>(String name, TypeToken<T> typeToken) implem
     );
     public static final ForgingStepProperty<String> TARGET_INVENTORY = new ForgingStepProperty<>(
             "target_inventory",
+            String.class
+    );
+    public static final ForgingStepProperty<String> IS_STATE = new ForgingStepProperty<>(
+            "is_state",
+            String.class
+    );
+    public static final ForgingStepProperty<String> NOT_STATE = new ForgingStepProperty<>(
+            "not_state",
             String.class
     );
 

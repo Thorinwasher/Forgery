@@ -12,15 +12,26 @@ import dev.thorinwasher.forgery.listener.BlockEventListener;
 import dev.thorinwasher.forgery.listener.PlayerEventListener;
 import dev.thorinwasher.forgery.listener.WorldEventListener;
 import dev.thorinwasher.forgery.recipe.ItemReference;
+import dev.thorinwasher.forgery.recipe.Recipe;
+import dev.thorinwasher.forgery.recipe.RecipeResult;
+import dev.thorinwasher.forgery.serialize.RecipeResultSerializer;
+import dev.thorinwasher.forgery.serialize.Serialize;
 import dev.thorinwasher.forgery.structure.*;
+import io.leangen.geantyref.TypeFactory;
+import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.spongepowered.configurate.ConfigurateException;
+import org.spongepowered.configurate.yaml.YamlConfigurationLoader;
 
 import java.io.*;
 import java.sql.SQLException;
@@ -40,6 +51,7 @@ public class Forgery extends JavaPlugin {
     private ItemAdapter itemAdapter;
     private Map<Key, ItemReference> itemReferences;
     private boolean loadSuccess = false;
+    private Map<String, Recipe> recipes;
 
     @Override
     public void onLoad() {
@@ -82,8 +94,21 @@ public class Forgery extends JavaPlugin {
         itemReferences = database.find(persistencyAccess.itemStoredData(), null).join()
                 .stream()
                 .collect(Collectors.toMap(ItemReference::getKey, itemReference -> itemReference));
+        saveItemReferenceIfNotExists(new ItemReference("diamond_sword", new ItemStack(Material.DIAMOND_SWORD)));
+        ItemStack itemStack = new ItemStack(Material.IRON_INGOT);
+        itemStack.setData(DataComponentTypes.CUSTOM_NAME, Component.text("Pig Iron Ingot"));
+        saveItemReferenceIfNotExists(new ItemReference("pig_iron", itemStack));
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, new ForgeryCommand(itemReferences, persistencyAccess)::register);
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(this, this::tickStructures, 1, 1);
+        this.recipes = loadRecipes();
+        Preconditions.checkState(recipes != null, "Could not deserialize recipes section");
+    }
+
+    private void saveItemReferenceIfNotExists(ItemReference itemReference) {
+        if (itemReferences.containsKey(itemReference.getKey())) {
+            itemReferences.put(itemReference.getKey(), itemReference);
+            persistencyAccess.database().insert(persistencyAccess.itemStoredData(), itemReference);
+        }
     }
 
     private void loadStructures() {
@@ -146,5 +171,21 @@ public class Forgery extends JavaPlugin {
         placedStructureRegistry.getAllStream()
                 .map(PlacedForgeryStructure::behavior)
                 .forEach(StructureBehavior::tickStructure);
+    }
+
+    private Map<String, Recipe> loadRecipes() {
+        try {
+            YamlConfigurationLoader loader = YamlConfigurationLoader.builder()
+                    .defaultOptions(opts -> opts.serializers(builder -> {
+                                Serialize.registerSerializers(builder);
+                                builder.register(RecipeResult.class, new RecipeResultSerializer(itemReferences));
+                            }
+                    ))
+                    .file(new File(getDataFolder(), "recipes.yml"))
+                    .build();
+            return (Map<String, Recipe>) loader.load().get(TypeFactory.parameterizedClass(Map.class, String.class, Recipe.class));
+        } catch (ConfigurateException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
