@@ -24,7 +24,7 @@ public record RecipeResultSerializer(Map<Key, ItemReference> itemReferences) imp
     public RecipeResult deserialize(@NotNull Type type, @NotNull ConfigurationNode node) throws SerializationException {
         boolean overrideLore = !node.hasChild("override-lore") || node.node("override-lore").getBoolean();
         int amount = Math.max(1, node.node("amount").getInt(1));
-        Preconditions.checkArgument(node.hasChild("data") != node.hasChild("material"));
+        Preconditions.checkArgument(node.hasChild("stored-item") != node.hasChild("material"));
         String nameString = node.node("name").getString();
         Component name = nameString != null ? MiniMessage.miniMessage().deserialize(nameString) : null;
         List<String> loreString = node.node("lore").getList(String.class);

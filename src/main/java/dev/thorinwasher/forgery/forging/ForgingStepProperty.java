@@ -20,7 +20,7 @@ public record ForgingStepProperty<T>(String name, TypeToken<T> typeToken) implem
             TypeFactory.parameterizedClass(List.class, String.class)
     );
     public static final ForgingStepProperty<Duration> PROCESS_TIME = new ForgingStepProperty<>(
-            "time",
+            "process_time",
             Duration.class
     );
     public static final ForgingStepProperty<Integer> PROCESS_AMOUNT = new ForgingStepProperty<>(

@@ -106,7 +106,7 @@ public class Forgery extends JavaPlugin {
     }
 
     private void saveItemReferenceIfNotExists(ItemReference itemReference) {
-        if (itemReferences.containsKey(itemReference.getKey())) {
+        if (!itemReferences.containsKey(itemReference.getKey())) {
             itemReferences.put(itemReference.getKey(), itemReference);
             persistencyAccess.database().insert(persistencyAccess.itemStoredData(), itemReference);
         }
@@ -129,6 +129,10 @@ public class Forgery extends JavaPlugin {
     }
 
     public static NamespacedKey key(String key) {
+        if (key.contains(":")) {
+            String[] split = key.split(":", 2);
+            return new NamespacedKey(split[0], split[1]);
+        }
         return new NamespacedKey(NAMESPACE, key);
     }
 

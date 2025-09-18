@@ -10,6 +10,7 @@ import dev.thorinwasher.forgery.inventory.ForgingMaterial;
 import dev.thorinwasher.forgery.structure.BlockTransform;
 import dev.thorinwasher.forgery.structure.Condition;
 import dev.thorinwasher.forgery.structure.KeyedSerializer;
+import dev.thorinwasher.forgery.util.Duration;
 import dev.thorinwasher.forgery.util.ForgeryKey;
 import io.leangen.geantyref.TypeToken;
 import io.papermc.paper.registry.RegistryKey;
@@ -43,7 +44,8 @@ public class Serialize {
                 .register(BlockType.class, new KeyedSerializer<>(RegistryKey.BLOCK))
                 .register(BlockData.class, new BlockDataSerializer())
                 .register(BlockTransform.class, new BlockTransformSerializer())
-                .register(Condition.class, new ConditionSerializer());
+                .register(Condition.class, new ConditionSerializer())
+                .register(Duration.class, new DurationSerializer());
     }
 
     public static <T> Optional<String> asJson(TypeToken<T> token, T value) {
