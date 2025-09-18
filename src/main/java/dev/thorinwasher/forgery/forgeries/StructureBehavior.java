@@ -6,6 +6,8 @@ import dev.thorinwasher.forgery.database.PersistencyAccess;
 import dev.thorinwasher.forgery.forging.ItemAdapter;
 import dev.thorinwasher.forgery.inventory.ForgeryInventory;
 import dev.thorinwasher.forgery.inventory.InventoryStoredData;
+import dev.thorinwasher.forgery.recipe.Recipe;
+import dev.thorinwasher.forgery.recipe.RecipeProcedureEvaluator;
 import dev.thorinwasher.forgery.structure.BlockTransform;
 import dev.thorinwasher.forgery.structure.Condition;
 import dev.thorinwasher.forgery.structure.PlacedForgeryStructure;
@@ -20,6 +22,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,19 +32,26 @@ public class StructureBehavior {
     private final PersistencyAccess persistencyAccess;
     private final ItemAdapter itemAdapter;
     private final long creationDate;
+    private final Map<String, Recipe> recipes;
     private PlacedForgeryStructure structure;
     private final Map<String, ForgeryInventory> inventories = new HashMap<>();
     private final Map<BlockType, String> blockTypeInventoryTypeMap = new HashMap<>();
     private Set<String> states;
     private Map<String, List<StructureStateChange>> stateHistory;
+    private @Nullable ItemStack recipeOutput = null;
+    private long lastEvaluated = -1;
+    private static final long EVALUATION_DELAY = 200;
+    private long processStart;
 
-    public StructureBehavior(UUID blastFurnaceId, PersistencyAccess persistencyAccess, ItemAdapter itemAdapter, long creationDate) {
+    public StructureBehavior(UUID blastFurnaceId, PersistencyAccess persistencyAccess, ItemAdapter itemAdapter, long creationDate, Map<String, Recipe> recipes, long processStart) {
         this.uuid = blastFurnaceId;
         this.persistencyAccess = persistencyAccess;
         this.itemAdapter = itemAdapter;
         this.creationDate = creationDate;
         this.states = Set.of();
         this.stateHistory = Map.of();
+        this.recipes = recipes;
+        this.processStart = processStart;
     }
 
     public PlacedForgeryStructure placedStructure() {
@@ -66,16 +76,39 @@ public class StructureBehavior {
             return InteractionResult.DEFAULT;
         }
         ForgeryInventory forgeryInventory = inventory(inventoryTypeName);
-        switch (forgeryInventory.behavior().access()) {
+        return switch (forgeryInventory.behavior().access()) {
             case INSERTABLE -> accessInsertableInventory(actor, forgeryInventory, hand);
             case OPENABLE -> openInventory(actor, forgeryInventory, hand);
-        }
-        return InteractionResult.DENY;
+        };
     }
 
     private InteractionResult accessInsertableInventory(Player actor, ForgeryInventory forgeryInventory, EquipmentSlot hand) {
         if (actor.isSneaking()) {
             if (hand == EquipmentSlot.OFF_HAND) {
+                return InteractionResult.DENY;
+            }
+            if (lastEvaluated + EVALUATION_DELAY < TimeProvider.time()) {
+                recipeOutput = RecipeProcedureEvaluator.findRecipeResult(
+                        stateHistory,
+                        forgeryInventory.items().stream()
+                                .map(ForgeryInventory.ItemRecord::forgeryItem)
+                                .toList(),
+                        0L,
+                        recipes.values(),
+                        itemAdapter
+                );
+            }
+            if (recipeOutput != null && forgeryInventory.typeName().equalsIgnoreCase(structure.metaValue(StructureMeta.OUTPUT_INVENTORY))) {
+                inventories.values().forEach(ForgeryInventory::clear);
+                if (!actor.getInventory().addItem(recipeOutput).isEmpty()) {
+                    actor.getWorld().dropItemNaturally(actor.getLocation(), recipeOutput);
+                }
+                stateHistory.clear();
+                persistencyAccess.database().remove(
+                        persistencyAccess.structureStateStoredData(),
+                        new StructureStateStoredData.StructureStateData(this.uuid, null)
+                );
+                resetProcessStart();
                 return InteractionResult.DENY;
             }
             PlayerInventory actorInventory = actor.getInventory();
@@ -86,6 +119,9 @@ public class StructureBehavior {
                             actor.getWorld().dropItemNaturally(actor.getLocation(), itemStack);
                         }
                     });
+            if (forgeryInventory.items().isEmpty()) {
+                resetProcessStart();
+            }
             return InteractionResult.DENY;
         }
         PlayerInventory inventory = actor.getInventory();
@@ -95,8 +131,23 @@ public class StructureBehavior {
         }
         itemStack.setAmount(itemStack.getAmount() - 1);
         itemAdapter.toForgery(itemStack)
-                .ifPresent(forgeryInventory::addItem);
+                .ifPresent(item -> {
+                    if (forgeryInventory.items().isEmpty()) {
+                        startProcess();
+                    }
+                    forgeryInventory.addItem(item);
+                });
         return InteractionResult.DENY;
+    }
+
+    private void resetProcessStart() {
+        processStart = -1;
+        persistencyAccess.database().update(persistencyAccess.behaviorStoredData(), this);
+    }
+
+    private void startProcess() {
+        processStart = TimeProvider.time();
+        persistencyAccess.database().update(persistencyAccess.behaviorStoredData(), this);
     }
 
     private InteractionResult openInventory(Player actor, ForgeryInventory forgeryInventory, EquipmentSlot hand) {
@@ -191,7 +242,8 @@ public class StructureBehavior {
                 ForgeryInventory inventory = this.inventories.get(inventoryEmptyCondition.inventoryTypeName());
                 yield inventory == null || inventory.items().isEmpty();
             }
-            case Condition.InvertedCondition invertedCondition -> !conditionsAreFilled(List.of(invertedCondition.condition()));
+            case Condition.InvertedCondition invertedCondition ->
+                    !conditionsAreFilled(List.of(invertedCondition.condition()));
         });
     }
 
@@ -248,6 +300,10 @@ public class StructureBehavior {
                 .filter(entry -> !entry.getValue().isEmpty() && entry.getValue().getLast().action() == StructureStateChange.Action.ADD)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toUnmodifiableSet());
+    }
+
+    public long processStart() {
+        return this.processStart;
     }
 
     public record InteractionResult(Event.Result useBlock, Event.Result useItem) {

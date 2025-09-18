@@ -153,6 +153,15 @@ public class ForgeryInventory implements InventoryHolder {
         return Optional.ofNullable(item);
     }
 
+    public void clear() {
+        for (int i = 0; i < contents.length; i++) {
+            if (contents[i] != null) {
+                this.store(null, i);
+                contents[i] = null;
+            }
+        }
+    }
+
     public record ItemRecord(int pos, ForgingItem forgeryItem) {
 
     }

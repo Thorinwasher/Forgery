@@ -3,24 +3,87 @@ package dev.thorinwasher.forgery.recipe;
 import dev.thorinwasher.forgery.forgeries.StructureStateChange;
 import dev.thorinwasher.forgery.forging.ForgingStep;
 import dev.thorinwasher.forgery.forging.ForgingStepProperty;
+import dev.thorinwasher.forgery.forging.ItemAdapter;
 import dev.thorinwasher.forgery.inventory.ForgingItem;
+import dev.thorinwasher.forgery.inventory.ForgingMaterial;
 import dev.thorinwasher.forgery.util.Duration;
+import dev.thorinwasher.forgery.util.ForgeryKey;
+import dev.thorinwasher.forgery.util.Pair;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 public class RecipeProcedureEvaluator {
 
-    public static Stream<ForgingItem> findRecipeResult(Map<String, List<StructureStateChange>> change, List<ForgingItem> itemInput,
-                                                       long processStart, int alreadyTaken, Collection<Recipe> recipes) {
-        List<Recipe> evaluated = recipes.stream()
-                .sorted(Comparator.comparing(recipe -> evaluateRecipe(change, itemInput, recipe, processStart)))
+    public static ItemStack findRecipeResult(Map<String, List<StructureStateChange>> change, List<ForgingItem> itemInput,
+                                             long processStart, Collection<Recipe> recipes, ItemAdapter adapter) {
+        List<Pair<Recipe, Double>> evaluated = recipes.stream()
+                .map(recipe -> new Pair<>(recipe, evaluateRecipe(change, itemInput, recipe, processStart)))
+                .sorted(Comparator.comparing(Pair::second))
                 .toList();
+        Pair<Recipe, Double> winner = evaluated.getLast();
+        if (winner.second() < 0.3) {
+            return adapter.failedItem();
+        }
+        ItemStack itemStack = winner.first().result().itemWriter().get();
+        itemStack.setAmount(winner.first().result().amount());
+        return itemStack;
     }
 
     private static double evaluateRecipe(Map<String, List<StructureStateChange>> change, List<ForgingItem> itemInput,
                                          Recipe recipe, long processStart) {
+        double structureChangeScore = evaluateStructureStateChanges(change, processStart, recipe);
+        Map<ForgingMaterial, Integer> ingredients = new HashMap<>();
+        for (ForgingStep forgingStep : recipe.steps().steps()) {
+            if (!forgingStep.properties().containsKey(ForgingStepProperty.INPUT_CONTENT)) {
+                continue;
+            }
+            Map<ForgingMaterial, Integer> stepIngredients = forgingStep.getOrThrow(ForgingStepProperty.INPUT_CONTENT).ingredients();
+            stepIngredients.forEach((material, integer) -> {
+                ingredients.put(material, ingredients.getOrDefault(material, 0) + integer);
+            });
+        }
+        double ingredientScore;
+        if (!ingredients.isEmpty()) {
+            Map<ForgingMaterial, Integer> actualIngredients = new HashMap<>();
+            itemInput.stream()
+                    .filter(item -> item.material() != null)
+                    .forEach(item -> actualIngredients.put(item.material(), actualIngredients.getOrDefault(item.material(), 0) + 1));
+            ingredientScore = evaluateIngredients(ingredients, actualIngredients);
+        } else {
+            ingredientScore = 1D;
+        }
+        return ingredientScore * structureChangeScore;
+    }
 
+    public static double nearbyValueScore(long expected, long value) {
+        double diff = Math.abs(expected - value);
+        return 1 - Math.max(diff / expected, 0D);
+    }
+
+    public static double evaluateIngredients(Map<ForgingMaterial, Integer> target, Map<ForgingMaterial, Integer> actual) {
+        double ingredientScore = target.entrySet().stream()
+                .map(entry -> Math.pow(entry.getKey().normalizedScore(), entry.getValue()))
+                .reduce(0D, (aDouble, aDouble2) -> aDouble * aDouble2);
+        int ingredientAmount = target.values().stream().reduce(0, Integer::sum);
+        // Average out t
+        double output = Math.pow(ingredientScore, 1D / ingredientAmount);
+        Map<ForgeryKey, Integer> modifiedTarget = target.entrySet().stream()
+                .collect(Collectors.toMap(entry -> entry.getKey().key(), Map.Entry::getValue));
+        Map<ForgeryKey, Integer> modifiedActual = actual.entrySet().stream()
+                .collect(Collectors.toMap(entry -> entry.getKey().key(), Map.Entry::getValue));
+        if (modifiedTarget.size() != modifiedActual.size()) {
+            return 0;
+        }
+        for (Map.Entry<ForgeryKey, Integer> targetEntry : modifiedTarget.entrySet()) {
+            Integer actualAmount = modifiedActual.get(targetEntry.getKey());
+            if (actualAmount == null || actualAmount == 0) {
+                return 0;
+            }
+            output *= nearbyValueScore(targetEntry.getValue(), actualAmount);
+        }
+        return output;
     }
 
     private static double evaluateStructureStateChanges(Map<String, List<StructureStateChange>> changes, long processStart,

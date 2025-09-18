@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS structure
     schematic      TEXT,
     structure_type TEXT,
     creation_date  INTEGER,
+    process_start  INTEGER,
     PRIMARY KEY (uuid)
 );
 
@@ -59,25 +60,4 @@ CREATE TABLE IF NOT EXISTS item
     item_key  TEXT,
     item_data BLOB,
     PRIMARY KEY (item_key)
-);
-
-CREATE TABLE IF NOT EXISTS recipe_item_withdrawal
-(
-    structure_uuid   BINARY(16),
-    withdrawn_amount INTEGER,
-    inventory_type   INTEGER,
-    FOREIGN KEY (structure_uuid, inventory_type)
-        REFERENCES inventory (structure_uuid, inventory_type)
-        ON UPDATE CASCADE ON DELETE CASCADE,
-    PRIMARY KEY (structure_uuid, inventory_type)
-);
-
-CREATE TABLE IF NOT EXISTS recipe_process
-(
-    structure_uuid BINARY(16),
-    process_start  INTEGER,
-    FOREIGN KEY (structure_uuid)
-        REFERENCES structure (uuid)
-        ON UPDATE CASCADE ON DELETE CASCADE,
-    PRIMARY KEY (structure_uuid)
 );

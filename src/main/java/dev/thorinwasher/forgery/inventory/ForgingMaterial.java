@@ -12,4 +12,8 @@ public record ForgingMaterial(@Nullable ForgeryKey key, int score) {
     public boolean providesExtraData() {
         return (key != null && !key.namespace().equals("minecraft")) || score != 10;
     }
+
+    public double normalizedScore() {
+        return score / 10D;
+    }
 }

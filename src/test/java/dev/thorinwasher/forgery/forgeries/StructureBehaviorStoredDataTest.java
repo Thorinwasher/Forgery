@@ -54,7 +54,7 @@ class StructureBehaviorStoredDataTest {
         integrationRegistry.initialize();
         this.itemAdapter = new ItemAdapter(integrationRegistry);
         this.structureRegistry = new StructureRegistry();
-        this.persistencyAccess = new PersistencyAccess(database, structureRegistry, itemAdapter);
+        this.persistencyAccess = new PersistencyAccess(database, structureRegistry, itemAdapter, Map::of);
         persistencyAccess.initialize();
         structureRegistry.addStructure(new ForgeryStructure(
                 new Schematic(new Vector3i(), new Vector3i(), new BlockData[0], new byte[0]),
@@ -68,7 +68,7 @@ class StructureBehaviorStoredDataTest {
 
     @Test
     public void test() {
-        StructureBehavior structureBehavior = new StructureBehavior(UUID.randomUUID(), persistencyAccess, itemAdapter, 0);
+        StructureBehavior structureBehavior = new StructureBehavior(UUID.randomUUID(), persistencyAccess, itemAdapter, 0L, Map.of(), -1L);
         ForgeryStructure forgeryStructure = structureRegistry.getStructure("my_structure").get();
         structureBehavior.setStructure(new PlacedForgeryStructure(
                 forgeryStructure, new Matrix3d(), new BlockLocation(0, 0, 0, UUID.randomUUID()), structureBehavior

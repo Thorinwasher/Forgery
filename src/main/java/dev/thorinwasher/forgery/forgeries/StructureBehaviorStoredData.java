@@ -2,9 +2,10 @@ package dev.thorinwasher.forgery.forgeries;
 
 import dev.thorinwasher.forgery.database.PersistencyAccess;
 import dev.thorinwasher.forgery.database.SqlStatements;
-import dev.thorinwasher.forgery.database.StoredData;
+import dev.thorinwasher.forgery.database.UpdateableStoredData;
 import dev.thorinwasher.forgery.forging.ItemAdapter;
 import dev.thorinwasher.forgery.inventory.InventoryStoredData;
+import dev.thorinwasher.forgery.recipe.Recipe;
 import dev.thorinwasher.forgery.structure.PlacedForgeryStructure;
 import dev.thorinwasher.forgery.structure.StructureRegistry;
 import dev.thorinwasher.forgery.util.DecoderUtil;
@@ -18,20 +19,23 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
-public class StructureBehaviorStoredData implements StoredData<StructureBehavior, UUID> {
+public class StructureBehaviorStoredData implements UpdateableStoredData<StructureBehavior, UUID> {
 
     private final SqlStatements statements = new SqlStatements("/database/structure");
     private static final String BLAST_FURNACE = "blast_furnace";
     private final StructureRegistry registry;
     private final PersistencyAccess persistencyAccess;
     private final ItemAdapter itemAdapter;
+    private final Map<String, Recipe> recipes;
 
-    public StructureBehaviorStoredData(StructureRegistry registry, PersistencyAccess persistencyAccess, ItemAdapter itemAdapter) {
+    public StructureBehaviorStoredData(StructureRegistry registry, PersistencyAccess persistencyAccess, ItemAdapter itemAdapter, Map<String, Recipe> recipes) {
         this.registry = registry;
         this.persistencyAccess = persistencyAccess;
         this.itemAdapter = itemAdapter;
+        this.recipes = recipes;
     }
 
     @Override
@@ -50,7 +54,8 @@ public class StructureBehaviorStoredData implements StoredData<StructureBehavior
                 String schematic = resultSet.getString("schematic");
                 UUID blastFurnaceId = DecoderUtil.asUuid(resultSet.getBytes("uuid"));
                 long creationDate = resultSet.getLong("creation_date");
-                StructureBehavior blastFurnace = new StructureBehavior(blastFurnaceId, persistencyAccess, itemAdapter, creationDate);
+                long processStart = resultSet.getLong("process_start");
+                StructureBehavior blastFurnace = new StructureBehavior(blastFurnaceId, persistencyAccess, itemAdapter, creationDate, recipes, processStart);
                 registry.getStructure(schematic)
                         .map(structure -> new PlacedForgeryStructure(structure, transformation, location, blastFurnace))
                         .ifPresentOrElse(structure -> {
@@ -92,6 +97,7 @@ public class StructureBehaviorStoredData implements StoredData<StructureBehavior
             preparedStatement.setString(7, structure.structure().getName());
             preparedStatement.setString(8, BLAST_FURNACE);
             preparedStatement.setLong(9, object.creationDate());
+            preparedStatement.setLong(10, object.processStart());
             preparedStatement.execute();
         }
     }
@@ -100,6 +106,15 @@ public class StructureBehaviorStoredData implements StoredData<StructureBehavior
     public void remove(StructureBehavior object, Connection connection) throws SQLException {
         try (PreparedStatement preparedStatement = connection.prepareStatement(statements.get(SqlStatements.Type.DELETE))) {
             preparedStatement.setBytes(1, DecoderUtil.asBytes(object.uuid()));
+            preparedStatement.execute();
+        }
+    }
+
+    @Override
+    public void update(StructureBehavior object, Connection connection) throws SQLException {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(statements.get(SqlStatements.Type.UPDATE))) {
+            preparedStatement.setLong(1, object.processStart());
+            preparedStatement.setBytes(2, DecoderUtil.asBytes(object.uuid()));
             preparedStatement.execute();
         }
     }

@@ -75,22 +75,9 @@ public class Forgery extends JavaPlugin {
         } catch (IOException | SQLException e) {
             throw new RuntimeException(e);
         }
-        this.persistencyAccess = new PersistencyAccess(database, structureRegistry, itemAdapter);
+        this.persistencyAccess = new PersistencyAccess(database, structureRegistry, itemAdapter, () -> Preconditions.checkNotNull(recipes));
         persistencyAccess.initialize();
         loadStructures();
-        Bukkit.getPluginManager().registerEvents(new BlockEventListener(placedStructureRegistry, structureRegistry, persistencyAccess, itemAdapter), this);
-        Bukkit.getPluginManager().registerEvents(new PlayerEventListener(placedStructureRegistry), this);
-        Bukkit.getPluginManager().registerEvents(new WorldEventListener(persistencyAccess, placedStructureRegistry), this);
-        Bukkit.getWorlds()
-                .stream()
-                .map(World::getUID)
-                .map(uuid -> database.find(persistencyAccess.behaviorStoredData(), uuid))
-                .forEach(future ->
-                        future.thenAcceptAsync(behaviors -> behaviors.stream()
-                                .map(StructureBehavior::placedStructure)
-                                .forEach(placedStructureRegistry::registerStructure)
-                        )
-                );
         itemReferences = database.find(persistencyAccess.itemStoredData(), null).join()
                 .stream()
                 .collect(Collectors.toMap(ItemReference::getKey, itemReference -> itemReference));
@@ -102,6 +89,20 @@ public class Forgery extends JavaPlugin {
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(this, this::tickStructures, 1, 1);
         this.recipes = loadRecipes();
         Preconditions.checkState(recipes != null, "Could not deserialize recipes section");
+        Bukkit.getWorlds()
+                .stream()
+                .map(World::getUID)
+                .map(uuid -> database.find(persistencyAccess.behaviorStoredData(), uuid))
+                .forEach(future ->
+                        future.thenAcceptAsync(behaviors -> behaviors.stream()
+                                .map(StructureBehavior::placedStructure)
+                                .forEach(placedStructureRegistry::registerStructure)
+                        )
+                );
+
+        Bukkit.getPluginManager().registerEvents(new BlockEventListener(placedStructureRegistry, structureRegistry, persistencyAccess, itemAdapter, recipes), this);
+        Bukkit.getPluginManager().registerEvents(new PlayerEventListener(placedStructureRegistry), this);
+        Bukkit.getPluginManager().registerEvents(new WorldEventListener(persistencyAccess, placedStructureRegistry), this);
     }
 
     private void saveItemReferenceIfNotExists(ItemReference itemReference) {
