@@ -8,10 +8,7 @@ import dev.thorinwasher.forgery.inventory.ForgeryInventory;
 import dev.thorinwasher.forgery.inventory.InventoryStoredData;
 import dev.thorinwasher.forgery.recipe.Recipe;
 import dev.thorinwasher.forgery.recipe.RecipeProcedureEvaluator;
-import dev.thorinwasher.forgery.structure.BlockTransform;
-import dev.thorinwasher.forgery.structure.Condition;
-import dev.thorinwasher.forgery.structure.PlacedForgeryStructure;
-import dev.thorinwasher.forgery.structure.StructureMeta;
+import dev.thorinwasher.forgery.structure.*;
 import dev.thorinwasher.forgery.vector.BlockLocation;
 import net.kyori.adventure.text.Component;
 import org.bukkit.block.Block;
@@ -255,15 +252,25 @@ public class StructureBehavior {
     }
 
     private void tickInventories() {
-        inventories.values()
+        List<ForgeryInventory> interfaceInventories = inventories.values()
                 .stream()
                 .filter(forgeryInventory -> forgeryInventory.behavior().access() == ForgeryInventory.AccessBehavior.OPENABLE)
                 .filter(forgeryInventory -> !forgeryInventory.getInventory().getViewers().isEmpty())
-                .forEach(inventory -> {
-                    inventory.updateContentsFromInterface();
-                    // TODO: Implement item transformations
-                    inventory.updateInterfaceFromContents();
-                });
+                .toList();
+        interfaceInventories.forEach(ForgeryInventory::updateContentsFromInterface);
+        List<InventoryTransform> transforms = structure.metaValue(StructureMeta.INVENTORY_TRANSFORMS);
+        if (transforms != null) {
+            transforms.forEach(inventoryTransform -> {
+                if (states.contains(inventoryTransform.state())) {
+                    long timePoint = stateHistory.get(inventoryTransform.state()).getLast().timePoint();
+                    long duration = TimeProvider.time() - timePoint;
+                    if (duration != 0 && duration % inventoryTransform.decrementTime() == 0) {
+                        inventory(inventoryTransform.inventory()).retrieveFirstAndSave();
+                    }
+                }
+            });
+        }
+        interfaceInventories.forEach(ForgeryInventory::updateInterfaceFromContents);
     }
 
     private void tickBlocks() {
