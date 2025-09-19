@@ -29,6 +29,13 @@ public record BlockTransform(String toState, BlockData from, BlockData to,
         block.setBlockData(initial.merge(toApply));
     }
 
+    public boolean matches(BlockData expected, BlockData actual) {
+        if (!expected.matches(from) && !expected.matches(to)) {
+            return false;
+        }
+        return actual.matches(from) || actual.matches(to);
+    }
+
     public enum BlockConversion {
         KEEP_OTHER_DATA
     }

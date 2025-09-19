@@ -1,0 +1,24 @@
+{
+  "schem_file": "charcoal_pit.schem",
+  "meta": {
+    "inventories": {
+    },
+    "inventory_transforms": [],
+    "block_transforms": [
+      {
+        "to_state": "completed",
+        "from": "minecraft:oak_log",
+        "to": "minecraft:coal_block",
+        "block_conversion": "keep_other_data"
+      }
+    ],
+    "states": {
+      "completed": [
+        {
+          "structure_age": 2400
+        }
+      ]
+    },
+    "process_parameters": []
+  }
+}

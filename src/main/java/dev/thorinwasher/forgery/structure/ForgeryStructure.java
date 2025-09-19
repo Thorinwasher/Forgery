@@ -88,7 +88,13 @@ public class ForgeryStructure {
         if (expected.getMaterial() == Material.DECORATED_POT) {
             return actual.getMaterial() == Material.DECORATED_POT;
         }
-        return expected.equals(actual);
+        List<BlockTransform> transforms = metaValue(StructureMeta.BLOCK_TRANSFORMS);
+        if (transforms != null && transforms.stream()
+                .anyMatch(blockTransform -> blockTransform.matches(expected, actual))
+        ) {
+            return true;
+        }
+        return actual.matches(expected);
     }
 
     public Map<Location, BlockData> getExpectedBlocks(Matrix3d transformation, Location structureWorldOrigin) {

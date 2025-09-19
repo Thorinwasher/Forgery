@@ -240,7 +240,7 @@ public class StructureBehavior {
 
     private boolean conditionsAreFilled(List<Condition> conditions) {
         return conditions.stream().allMatch(condition -> switch (condition) {
-            case Condition.StructureAgeCondition structureAgeCondition -> structureAgeCondition.age() > this.age();
+            case Condition.StructureAgeCondition structureAgeCondition -> structureAgeCondition.age() < this.age();
             case Condition.InventoryEmptyCondition inventoryEmptyCondition -> {
                 ForgeryInventory inventory = this.inventories.get(inventoryEmptyCondition.inventoryTypeName());
                 yield inventory == null || inventory.items().isEmpty();

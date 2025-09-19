@@ -23,7 +23,8 @@
     "inventory_transforms": [
       {
         "state": "powered",
-        "decrement_inventory": 1
+        "inventory": "fuel",
+        "decrement-time": 400
       }
     ],
     "block_transforms": [
