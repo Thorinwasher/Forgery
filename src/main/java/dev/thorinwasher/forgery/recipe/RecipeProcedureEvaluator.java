@@ -10,6 +10,9 @@ import dev.thorinwasher.forgery.inventory.ForgingMaterial;
 import dev.thorinwasher.forgery.util.Duration;
 import dev.thorinwasher.forgery.util.ForgeryKey;
 import dev.thorinwasher.forgery.util.Pair;
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
@@ -25,10 +28,15 @@ public class RecipeProcedureEvaluator {
                 .toList();
         Pair<Recipe, Double> winner = evaluated.getLast();
         if (winner.second() < 0.3) {
-            return adapter.failedItem();
+            return ItemAdapter.failedItem();
         }
-        ItemStack itemStack = winner.first().result().itemWriter().get();
-        itemStack.setAmount(winner.first().result().amount());
+        RecipeResult recipeResult = winner.first().result();
+        ItemStack itemStack = recipeResult.itemWriter().get(adapter.registry());
+        itemStack.setAmount(recipeResult.amount());
+        if (recipeResult.name() != null) {
+            itemStack.setData(DataComponentTypes.CUSTOM_NAME, recipeResult.name().decoration(TextDecoration.ITALIC, false)
+                    .colorIfAbsent(NamedTextColor.WHITE));
+        }
         return itemStack;
     }
 

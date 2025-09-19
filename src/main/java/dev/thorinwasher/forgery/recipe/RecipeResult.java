@@ -1,5 +1,6 @@
 package dev.thorinwasher.forgery.recipe;
 
+import dev.thorinwasher.forgery.integration.IntegrationRegistry;
 import net.kyori.adventure.text.Component;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -11,6 +12,6 @@ public record RecipeResult(ItemWriter itemWriter, int amount, boolean overrideLo
 
     public interface ItemWriter {
 
-        ItemStack get();
+        ItemStack get(IntegrationRegistry registry);
     }
 }

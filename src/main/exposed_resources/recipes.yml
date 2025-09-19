@@ -5,34 +5,25 @@ high_carbon_steel:
       ingredients:
         iron_ore: 10
         coal: 7
-    - process_time: 5m
+    - process_time: 5min
       is_state: has_fuel
-      repeat: 2
+    - process_time: 2min
+      not_state: has_fuel
   result:
     name: High carbon steel bar
-    stored_item: forgery:pig_iron
+    stored-item: forgery:pig_iron
     amount: 10
-soft_damascus_sword:
-  structure_type: anvil
+glass:
+  structure_type: blast_furnace
   steps:
-    - ingredients:
-        forgery:high_carbon_steel: 2
-    - heat: 1000
-      tool_input: flatten, bend
-      repeat: 7
-    - heat: 1000
-      tool_input: flatten, twist
-      repeat: 2
-  result:
-    name: Soft damascus sword
-    material: minecraft:iron_sword
-damascus_sword:
-  structure_type: water_cauldron
-  steps:
-    - heat: 1000
+    - target_inventory: furnace
       ingredients:
-        forgery:soft_damascus_sword: 1
-      time: 1m
+        sand: 12
+    - process_time: 5min
+      is_state: has_fuel
+    - process_time: 30s
+      not_state: has_fuel
   result:
-    name: Hardened damascus sword
-    material: minecraft:iron_sword
+    name: Clear glass
+    material: glass
+    amount: 12

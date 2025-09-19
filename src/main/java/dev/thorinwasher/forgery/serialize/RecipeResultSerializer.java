@@ -2,8 +2,11 @@ package dev.thorinwasher.forgery.serialize;
 
 import com.google.common.base.Preconditions;
 import dev.thorinwasher.forgery.Forgery;
+import dev.thorinwasher.forgery.inventory.ForgingMaterial;
 import dev.thorinwasher.forgery.recipe.ItemReference;
+import dev.thorinwasher.forgery.recipe.MaterialReference;
 import dev.thorinwasher.forgery.recipe.RecipeResult;
+import dev.thorinwasher.forgery.util.ForgeryKey;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -24,7 +27,7 @@ public record RecipeResultSerializer(Map<Key, ItemReference> itemReferences) imp
     public RecipeResult deserialize(@NotNull Type type, @NotNull ConfigurationNode node) throws SerializationException {
         boolean overrideLore = !node.hasChild("override-lore") || node.node("override-lore").getBoolean();
         int amount = Math.max(1, node.node("amount").getInt(1));
-        Preconditions.checkArgument(node.hasChild("stored-item") != node.hasChild("material"));
+        Preconditions.checkArgument(node.hasChild("stored-item") != node.hasChild("material"), "Expected one definition of stored-item or material.");
         String nameString = node.node("name").getString();
         Component name = nameString != null ? MiniMessage.miniMessage().deserialize(nameString) : null;
         List<String> loreString = node.node("lore").getList(String.class);
@@ -36,6 +39,15 @@ public record RecipeResultSerializer(Map<Key, ItemReference> itemReferences) imp
                 throw new IllegalArgumentException("There is no item reference with key '" + itemKey + "'");
             }
             return new RecipeResult(itemReferences.get(itemKey), amount, overrideLore, lore, name);
+        }
+        if (node.hasChild("material")) {
+            return new RecipeResult(
+                    new MaterialReference(new ForgingMaterial(ForgeryKey.defaultNamespace("minecraft", node.node("material").getString()))),
+                    amount,
+                    overrideLore,
+                    lore,
+                    name
+            );
         }
         return null;
     }
@@ -51,6 +63,7 @@ public record RecipeResultSerializer(Map<Key, ItemReference> itemReferences) imp
         }
         switch (obj.itemWriter()) {
             case ItemReference itemReference -> node.node("stored-item").set(itemReference.getKey().value());
+            case MaterialReference materialReference -> node.node("material").set(materialReference.material().key());
             default -> throw new IllegalStateException("Unexpected value: " + obj.itemWriter());
         }
     }

@@ -55,7 +55,7 @@ public record ItemAdapter(IntegrationRegistry registry) {
         return output;
     }
 
-    public ItemStack failedItem() {
+    public static ItemStack failedItem() {
         ItemStack itemStack = new ItemStack(Material.STONE);
         itemStack.setData(DataComponentTypes.LORE, ItemLore.lore(List.of(
                 Component.text("Failed slag")

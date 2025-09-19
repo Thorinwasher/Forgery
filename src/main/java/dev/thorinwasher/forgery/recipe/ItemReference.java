@@ -1,6 +1,7 @@
 package dev.thorinwasher.forgery.recipe;
 
 import dev.thorinwasher.forgery.Forgery;
+import dev.thorinwasher.forgery.integration.IntegrationRegistry;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -25,7 +26,7 @@ public final class ItemReference implements Keyed, RecipeResult.ItemWriter {
     }
 
     @Override
-    public ItemStack get() {
+    public ItemStack get(IntegrationRegistry registry) {
         return itemStack();
     }
 }
