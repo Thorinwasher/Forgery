@@ -162,6 +162,10 @@ public class ForgeryInventory implements InventoryHolder {
         }
     }
 
+    public boolean isFull() {
+        return behavior.size() <= items().size();
+    }
+
     public record ItemRecord(int pos, ForgingItem forgeryItem) {
 
     }

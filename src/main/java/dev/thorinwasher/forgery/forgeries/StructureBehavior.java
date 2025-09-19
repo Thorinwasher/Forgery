@@ -129,13 +129,16 @@ public class StructureBehavior {
         if (itemStack.isEmpty()) {
             return InteractionResult.DENY;
         }
-        itemStack.setAmount(itemStack.getAmount() - 1);
+        if (forgeryInventory.isFull()) {
+            return InteractionResult.DENY;
+        }
         itemAdapter.toForgery(itemStack)
                 .ifPresent(item -> {
                     if (forgeryInventory.items().isEmpty()) {
                         startProcess();
                     }
                     forgeryInventory.addItem(item);
+                    itemStack.setAmount(itemStack.getAmount() - 1);
                 });
         return InteractionResult.DENY;
     }
