@@ -1,5 +1,6 @@
 package dev.thorinwasher.forgery.recipe;
 
+import dev.thorinwasher.forgery.TimeProvider;
 import dev.thorinwasher.forgery.forgeries.StructureStateChange;
 import dev.thorinwasher.forgery.forging.ForgingStep;
 import dev.thorinwasher.forgery.forging.ForgingStepProperty;
@@ -91,7 +92,7 @@ public class RecipeProcedureEvaluator {
         Map<String, List<StructureStateTimePoint>> expectedChanges = new HashMap<>();
         long timePoint = processStart;
         for (ForgingStep step : recipe.steps().steps()) {
-            if (!step.properties().containsKey(ForgingStepProperty.IS_STATE) || step.properties().containsKey(ForgingStepProperty.NOT_STATE)) {
+            if (!step.properties().containsKey(ForgingStepProperty.IS_STATE) && !step.properties().containsKey(ForgingStepProperty.NOT_STATE)) {
                 continue;
             }
             long duration = step.getOrDefault(ForgingStepProperty.PROCESS_TIME, new Duration(1L)).duration();
@@ -105,7 +106,7 @@ public class RecipeProcedureEvaluator {
                         ));
             }
             if (step.properties().containsKey(ForgingStepProperty.NOT_STATE)) {
-                expectedChanges.computeIfAbsent(step.getOrThrow(ForgingStepProperty.IS_STATE), ignore -> new ArrayList<>())
+                expectedChanges.computeIfAbsent(step.getOrThrow(ForgingStepProperty.NOT_STATE), ignore -> new ArrayList<>())
                         .add(new StructureStateTimePoint(
                                 step.getOrThrow(ForgingStepProperty.NOT_STATE),
                                 false,
@@ -121,30 +122,22 @@ public class RecipeProcedureEvaluator {
             if (actualChanges == null) {
                 return 0D;
             }
-            precisionScore *= calculateStateChangeMatch(expectedChanges.get(state), actualChanges, timePoint, processStart);
+            precisionScore *= calculateStateChangeMatch(expectedChanges.get(state), actualChanges, TimeProvider.time(), processStart);
         }
-        return Math.pow(precisionScore, expectedChanges.size());
+        return Math.pow(precisionScore, 1D / expectedChanges.size());
     }
 
     private static double calculateStateChangeMatch(List<StructureStateTimePoint> expectedStates, List<StructureStateChange> actualChanges, long end, long start) {
-        int i = 0;
+        if (expectedStates.isEmpty()) {
+            return 1D;
+        }
         long matchingTime = 0L;
         long previousTimePoint = start;
         boolean active = false;
         for (StructureStateTimePoint expected : expectedStates) {
+            int i = 0;
             while (actualChanges.size() > i) {
                 StructureStateChange actual = actualChanges.get(i);
-                if (actual.timePoint() > expected.end()) {
-                    active = actual.action() == StructureStateChange.Action.ADD;
-                    previousTimePoint = actual.timePoint();
-                    break;
-                }
-                if (actual.timePoint() < expected.start()) {
-                    i++;
-                    active = actual.action() == StructureStateChange.Action.ADD;
-                    previousTimePoint = actual.timePoint();
-                    continue;
-                }
                 if (expected.active() == active) {
                     long startTime = Math.max(previousTimePoint, expected.start());
                     long stopTime = Math.min(actual.timePoint(), expected.end());
@@ -152,15 +145,15 @@ public class RecipeProcedureEvaluator {
                 }
                 active = actual.action() == StructureStateChange.Action.ADD;
                 previousTimePoint = actual.timePoint();
+                i++;
+            }
+            if (expected.active() == active) {
+                long startTime = Math.max(previousTimePoint, expected.start());
+                long stopTime = Math.min(end, expected.end());
+                matchingTime += Math.max(stopTime - startTime, 0L);
             }
         }
-        if (!expectedStates.isEmpty() && expectedStates.getLast().active() == active) {
-            StructureStateTimePoint expected = expectedStates.getLast();
-            long startTime = Math.max(previousTimePoint, expected.start());
-            long stopTime = Math.min(end, expected.end());
-            matchingTime += Math.max(stopTime - startTime, 0L);
-        }
-        return (double) matchingTime / (end - start);
+        return (double) matchingTime / Math.max(end - start, expectedStates.getLast().end() - start);
     }
 
     private record StructureStateTimePoint(String state, boolean active, long start, long end) {

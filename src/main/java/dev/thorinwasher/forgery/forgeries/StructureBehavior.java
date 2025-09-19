@@ -49,7 +49,7 @@ public class StructureBehavior {
         this.itemAdapter = itemAdapter;
         this.creationDate = creationDate;
         this.states = Set.of();
-        this.stateHistory = Map.of();
+        this.stateHistory = new HashMap<>();
         this.recipes = recipes;
         this.processStart = processStart;
     }
@@ -87,13 +87,15 @@ public class StructureBehavior {
             if (hand == EquipmentSlot.OFF_HAND) {
                 return InteractionResult.DENY;
             }
-            if (lastEvaluated + EVALUATION_DELAY < TimeProvider.time()) {
+            if (lastEvaluated + EVALUATION_DELAY < TimeProvider.time()
+                    && forgeryInventory.typeName().equalsIgnoreCase(structure.metaValue(StructureMeta.OUTPUT_INVENTORY))
+                    && !forgeryInventory.items().isEmpty()) {
                 recipeOutput = RecipeProcedureEvaluator.findRecipeResult(
                         stateHistory,
                         forgeryInventory.items().stream()
                                 .map(ForgeryInventory.ItemRecord::forgeryItem)
                                 .toList(),
-                        0L,
+                        processStart,
                         recipes.values(),
                         itemAdapter
                 );
@@ -103,6 +105,7 @@ public class StructureBehavior {
                 if (!actor.getInventory().addItem(recipeOutput).isEmpty()) {
                     actor.getWorld().dropItemNaturally(actor.getLocation(), recipeOutput);
                 }
+                recipeOutput = null;
                 stateHistory.clear();
                 persistencyAccess.database().remove(
                         persistencyAccess.structureStateStoredData(),
@@ -119,7 +122,7 @@ public class StructureBehavior {
                             actor.getWorld().dropItemNaturally(actor.getLocation(), itemStack);
                         }
                     });
-            if (forgeryInventory.items().isEmpty()) {
+            if (forgeryInventory.items().isEmpty() && forgeryInventory.typeName().equalsIgnoreCase(structure.metaValue(StructureMeta.OUTPUT_INVENTORY))) {
                 resetProcessStart();
             }
             return InteractionResult.DENY;
