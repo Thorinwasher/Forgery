@@ -14,7 +14,8 @@ public record MaterialReference(ForgingMaterial material) implements RecipeResul
     }
 
     @Override
-    public ItemStack get(IntegrationRegistry integrationRegistry) {
+    public ItemStack write(IntegrationRegistry integrationRegistry, int score) {
+        // TODO add score data
         return integrationRegistry.itemIntegrations()
                 .map(itemIntegration -> itemIntegration.toBukkit(material))
                 .flatMap(Optional::stream)

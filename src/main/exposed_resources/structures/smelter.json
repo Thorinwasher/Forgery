@@ -1,11 +1,11 @@
 {
-  "schem_file": "blast_furnace.schem",
+  "schem_file": "smelter.schem",
   "meta": {
     "inventories": {
-      "furnace": {
+      "smelter": {
         "access": "insertable",
         "interface-blocks": [
-          "minecraft:decorated_pot"
+          "minecraft:dispenser"
         ],
         "size": 27,
         "item-display": "none"
@@ -23,7 +23,7 @@
         ]
       }
     },
-    "output_inventory": "furnace",
+    "output_inventory": "smelter",
     "inventory_transforms": [
       {
         "state": "powered",
@@ -43,7 +43,7 @@
       "powered": [
         {
           "not": {
-            "inventory_empty": "furnace"
+            "inventory_empty": "smelter"
           }
         },
         {

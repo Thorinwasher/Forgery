@@ -94,7 +94,8 @@ public class StructureBehavior {
                                 .toList(),
                         processStart,
                         recipes.values(),
-                        itemAdapter
+                        itemAdapter,
+                        structure.structure().getName()
                 );
             }
             if (recipeOutput != null && forgeryInventory.typeName().equalsIgnoreCase(structure.metaValue(StructureMeta.OUTPUT_INVENTORY))) {
@@ -130,6 +131,10 @@ public class StructureBehavior {
             return InteractionResult.DENY;
         }
         if (forgeryInventory.isFull()) {
+            return InteractionResult.DENY;
+        }
+        ForgeryInventory.Behavior behavior = forgeryInventory.behavior();
+        if (!behavior.allows().isEmpty() && !behavior.allows().contains(itemStack.getType().asItemType())) {
             return InteractionResult.DENY;
         }
         itemAdapter.toForgery(itemStack)

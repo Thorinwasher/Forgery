@@ -12,6 +12,10 @@ public record RecipeResult(ItemWriter itemWriter, int amount, boolean overrideLo
 
     public interface ItemWriter {
 
-        ItemStack get(IntegrationRegistry registry);
+        default ItemStack write(IntegrationRegistry registry) {
+            return write(registry, 10);
+        }
+
+        ItemStack write(IntegrationRegistry registry, int score);
     }
 }

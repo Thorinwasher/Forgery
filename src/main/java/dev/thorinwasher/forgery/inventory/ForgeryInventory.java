@@ -9,6 +9,7 @@ import org.bukkit.block.BlockType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ItemType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
@@ -172,7 +173,7 @@ public class ForgeryInventory implements InventoryHolder {
 
     @ConfigSerializable
     public record Behavior(AccessBehavior access, ItemDisplayBehavior itemDisplay, int size,
-                           Set<BlockType> interfaceBlocks) {
+                           Set<BlockType> interfaceBlocks, Set<ItemType> allows) {
     }
 
     public enum AccessBehavior {

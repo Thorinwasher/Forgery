@@ -1,7 +1,11 @@
 package dev.thorinwasher.forgery.recipe;
 
 import dev.thorinwasher.forgery.Forgery;
+import dev.thorinwasher.forgery.forging.ItemAdapter;
 import dev.thorinwasher.forgery.integration.IntegrationRegistry;
+import dev.thorinwasher.forgery.inventory.ForgingMaterial;
+import dev.thorinwasher.forgery.inventory.ForgingMaterialPersistentDataType;
+import dev.thorinwasher.forgery.util.ForgeryKey;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -26,7 +30,14 @@ public final class ItemReference implements Keyed, RecipeResult.ItemWriter {
     }
 
     @Override
-    public ItemStack get(IntegrationRegistry registry) {
-        return itemStack();
+    public ItemStack write(IntegrationRegistry registry, int score) {
+        return writeMaterial(itemStack(), new ForgingMaterial(ForgeryKey.fromAdventure(key), score));
+    }
+
+    private ItemStack writeMaterial(ItemStack itemStack, ForgingMaterial material) {
+        itemStack.editPersistentDataContainer(pdc -> {
+            pdc.set(ItemAdapter.FORGING_MATERIAL, ForgingMaterialPersistentDataType.INSTANCE, material);
+        });
+        return itemStack;
     }
 }

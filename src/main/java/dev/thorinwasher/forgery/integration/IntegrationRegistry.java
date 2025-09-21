@@ -2,6 +2,8 @@ package dev.thorinwasher.forgery.integration;
 
 import dev.thorinwasher.forgery.integration.item.ForgeryItemIntegration;
 import dev.thorinwasher.forgery.integration.item.MinecraftItemIntegration;
+import dev.thorinwasher.forgery.recipe.ItemReference;
+import net.kyori.adventure.key.Key;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,8 +15,9 @@ public class IntegrationRegistry {
 
     Map<String, ItemIntegration> itemIntegrations = new HashMap<>();
 
-    public void initialize() {
-        Stream.of(new ForgeryItemIntegration(), new MinecraftItemIntegration())
+
+    public void initialize(Map<Key, ItemReference> itemReferences) {
+        Stream.of(new ForgeryItemIntegration(itemReferences), new MinecraftItemIntegration())
                 .filter(ItemIntegration::isEnabled)
                 .forEach(itemIntegration -> itemIntegrations.put(itemIntegration.id(), itemIntegration));
     }

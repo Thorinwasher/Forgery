@@ -37,11 +37,11 @@ class StructureBehaviorStoredDataTest {
     private StructureRegistry structureRegistry;
     private ForgeryInventory.Behavior inventoryBehavior1 = new ForgeryInventory.Behavior(
             ForgeryInventory.AccessBehavior.INSERTABLE, ForgeryInventory.ItemDisplayBehavior.ABOVE,
-            9, Set.of()
+            9, Set.of(), Set.of()
     );
     private ForgeryInventory.Behavior inventoryBehavior2 = new ForgeryInventory.Behavior(
             ForgeryInventory.AccessBehavior.OPENABLE, ForgeryInventory.ItemDisplayBehavior.NONE,
-            18, Set.of()
+            18, Set.of(), Set.of()
     );
     private PersistencyAccess persistencyAccess;
     private ItemAdapter itemAdapter;
@@ -51,7 +51,7 @@ class StructureBehaviorStoredDataTest {
         this.database = new Database();
         database.init(Files.createTempDirectory("forgery").toFile());
         IntegrationRegistry integrationRegistry = new IntegrationRegistry();
-        integrationRegistry.initialize();
+        integrationRegistry.initialize(Map.of());
         this.itemAdapter = new ItemAdapter(integrationRegistry);
         this.structureRegistry = new StructureRegistry();
         this.persistencyAccess = new PersistencyAccess(database, structureRegistry, itemAdapter, Map::of);

@@ -18,11 +18,9 @@ import dev.thorinwasher.forgery.serialize.RecipeResultSerializer;
 import dev.thorinwasher.forgery.serialize.Serialize;
 import dev.thorinwasher.forgery.structure.*;
 import io.leangen.geantyref.TypeFactory;
-import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -68,7 +66,6 @@ public class Forgery extends JavaPlugin {
     public void onEnable() {
         Preconditions.checkState(loadSuccess, "Failed on load");
         saveExposedResources();
-        integrationRegistry.initialize();
         Database database = new Database();
         try {
             database.init(this.getDataFolder());
@@ -77,14 +74,12 @@ public class Forgery extends JavaPlugin {
         }
         this.persistencyAccess = new PersistencyAccess(database, structureRegistry, itemAdapter, () -> Preconditions.checkNotNull(recipes));
         persistencyAccess.initialize();
-        loadStructures();
         itemReferences = database.find(persistencyAccess.itemStoredData(), null).join()
                 .stream()
                 .collect(Collectors.toMap(ItemReference::getKey, itemReference -> itemReference));
-        saveItemReferenceIfNotExists(new ItemReference("diamond_sword", new ItemStack(Material.DIAMOND_SWORD)));
-        ItemStack itemStack = new ItemStack(Material.IRON_INGOT);
-        itemStack.setData(DataComponentTypes.CUSTOM_NAME, Component.text("Pig Iron Ingot"));
-        saveItemReferenceIfNotExists(new ItemReference("pig_iron", itemStack));
+        saveItemReferenceIfNotExists(new ItemReference("pig_iron", new ItemStack(Material.IRON_INGOT)));
+        integrationRegistry.initialize(itemReferences);
+        loadStructures();
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, new ForgeryCommand(itemReferences, persistencyAccess)::register);
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(this, this::tickStructures, 1, 1);
         this.recipes = loadRecipes();

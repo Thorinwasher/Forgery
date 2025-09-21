@@ -1,5 +1,5 @@
-high_carbon_steel:
-  structure_type: blast_furnace
+pig_iron_1:
+  structure-type: blast_furnace
   steps:
     - target_inventory: furnace
       ingredients:
@@ -10,11 +10,26 @@ high_carbon_steel:
     - process_time: 2min
       not_state: has_fuel
   result:
-    name: High carbon steel bar
+    name: Pig iron ingot
+    stored-item: forgery:pig_iron
+    amount: 10
+pig_iron_2:
+  structure-type: blast_furnace
+  steps:
+    - target_inventory: furnace
+      ingredients:
+        raw_iron: 10
+        coal: 7
+    - process_time: 5min
+      is_state: has_fuel
+    - process_time: 2min
+      not_state: has_fuel
+  result:
+    name: Pig iron ingot
     stored-item: forgery:pig_iron
     amount: 10
 glass:
-  structure_type: blast_furnace
+  structure-type: blast_furnace
   steps:
     - target_inventory: furnace
       ingredients:
@@ -27,3 +42,14 @@ glass:
     name: Clear glass
     material: glass
     amount: 12
+iron:
+  structure-type: smelter
+  steps:
+    - target_inventory: smelter
+      ingredients:
+        forgery:pig_iron: 10
+    - process_time: 5min
+      is_state: has_fuel
+  result:
+    material: iron_bar
+    amount: 10

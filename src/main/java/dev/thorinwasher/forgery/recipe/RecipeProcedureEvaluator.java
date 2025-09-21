@@ -21,21 +21,28 @@ import java.util.stream.Collectors;
 public class RecipeProcedureEvaluator {
 
     public static ItemStack findRecipeResult(Map<String, List<StructureStateChange>> change, List<ForgingItem> itemInput,
-                                             long processStart, Collection<Recipe> recipes, ItemAdapter adapter) {
+                                             long processStart, Collection<Recipe> recipes, ItemAdapter adapter, String structureType) {
         List<Pair<Recipe, Double>> evaluated = recipes.stream()
+                .filter(recipe -> structureType.equals(recipe.structureType()))
                 .map(recipe -> new Pair<>(recipe, evaluateRecipe(change, itemInput, recipe, processStart)))
                 .sorted(Comparator.comparing(Pair::second))
                 .toList();
+        if (evaluated.isEmpty()) {
+            return ItemAdapter.failedItem();
+        }
         Pair<Recipe, Double> winner = evaluated.getLast();
         if (winner.second() < 0.3) {
             return ItemAdapter.failedItem();
         }
         RecipeResult recipeResult = winner.first().result();
-        ItemStack itemStack = recipeResult.itemWriter().get(adapter.registry());
+        ItemStack itemStack = recipeResult.itemWriter()
+                .write(adapter.registry(), (int) Math.ceil(winner.second() * 10D));
         itemStack.setAmount(recipeResult.amount());
         if (recipeResult.name() != null) {
-            itemStack.setData(DataComponentTypes.CUSTOM_NAME, recipeResult.name().decoration(TextDecoration.ITALIC, false)
-                    .colorIfAbsent(NamedTextColor.WHITE));
+            itemStack.setData(DataComponentTypes.CUSTOM_NAME, recipeResult.name()
+                    .decoration(TextDecoration.ITALIC, false)
+                    .colorIfAbsent(NamedTextColor.WHITE)
+            );
         }
         return itemStack;
     }
@@ -54,14 +61,14 @@ public class RecipeProcedureEvaluator {
             });
         }
         double ingredientScore;
+        Map<ForgingMaterial, Integer> actualIngredients = new HashMap<>();
+        itemInput.stream()
+                .filter(item -> item.material() != null)
+                .forEach(item -> actualIngredients.put(item.material(), actualIngredients.getOrDefault(item.material(), 0) + 1));
         if (!ingredients.isEmpty()) {
-            Map<ForgingMaterial, Integer> actualIngredients = new HashMap<>();
-            itemInput.stream()
-                    .filter(item -> item.material() != null)
-                    .forEach(item -> actualIngredients.put(item.material(), actualIngredients.getOrDefault(item.material(), 0) + 1));
             ingredientScore = evaluateIngredients(ingredients, actualIngredients);
         } else {
-            ingredientScore = 1D;
+            ingredientScore = actualIngredients.isEmpty() ? 1D : 0D;
         }
         return ingredientScore * structureChangeScore;
     }
@@ -74,7 +81,7 @@ public class RecipeProcedureEvaluator {
     public static double evaluateIngredients(Map<ForgingMaterial, Integer> target, Map<ForgingMaterial, Integer> actual) {
         double ingredientScore = target.entrySet().stream()
                 .map(entry -> Math.pow(entry.getKey().normalizedScore(), entry.getValue()))
-                .reduce(0D, (aDouble, aDouble2) -> aDouble * aDouble2);
+                .reduce(1D, (aDouble, aDouble2) -> aDouble * aDouble2);
         int ingredientAmount = target.values().stream().reduce(0, Integer::sum);
         // Average out t
         double output = Math.pow(ingredientScore, 1D / ingredientAmount);
@@ -123,6 +130,9 @@ public class RecipeProcedureEvaluator {
                         ));
             }
             timePoint += duration;
+        }
+        if (expectedChanges.isEmpty()) {
+            return 1D;
         }
         double precisionScore = 1D;
         for (String state : expectedChanges.keySet()) {

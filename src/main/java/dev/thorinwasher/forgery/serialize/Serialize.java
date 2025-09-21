@@ -16,6 +16,7 @@ import io.leangen.geantyref.TypeToken;
 import io.papermc.paper.registry.RegistryKey;
 import org.bukkit.block.BlockType;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.inventory.ItemType;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.gson.GsonConfigurationLoader;
@@ -45,7 +46,8 @@ public class Serialize {
                 .register(BlockData.class, new BlockDataSerializer())
                 .register(BlockTransform.class, new BlockTransformSerializer())
                 .register(Condition.class, new ConditionSerializer())
-                .register(Duration.class, new DurationSerializer());
+                .register(Duration.class, new DurationSerializer())
+                .register(ItemType.class, new KeyedSerializer<>(RegistryKey.ITEM));
     }
 
     public static <T> Optional<String> asJson(TypeToken<T> token, T value) {
