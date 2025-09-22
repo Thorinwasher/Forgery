@@ -34,6 +34,8 @@ public class StructureBehavior {
     private final Map<String, ForgeryInventory> inventories = new HashMap<>();
     private final Map<BlockType, String> blockTypeInventoryTypeMap = new HashMap<>();
     private Set<String> states;
+    private Set<String> modifiedInventories = new HashSet<>();
+    private Map<String, InventoryDisplay> inventoryDisplays = new HashMap<>();
     private Map<String, List<StructureStateChange>> stateHistory;
     private @Nullable ItemStack recipeOutput = null;
     private long lastEvaluated = -1;
@@ -110,6 +112,7 @@ public class StructureBehavior {
                         new StructureStateStoredData.StructureStateData(this.uuid, null)
                 );
                 resetProcessStart();
+                modifiedInventories.add(forgeryInventory.typeName());
                 return InteractionResult.DENY;
             }
             PlayerInventory actorInventory = actor.getInventory();
@@ -119,6 +122,7 @@ public class StructureBehavior {
                         if (!actorInventory.addItem(itemStack).isEmpty()) {
                             actor.getWorld().dropItemNaturally(actor.getLocation(), itemStack);
                         }
+                        modifiedInventories.add(forgeryInventory.typeName());
                     });
             if (forgeryInventory.items().isEmpty() && forgeryInventory.typeName().equalsIgnoreCase(structure.metaValue(StructureMeta.OUTPUT_INVENTORY))) {
                 resetProcessStart();
@@ -144,6 +148,7 @@ public class StructureBehavior {
                     }
                     forgeryInventory.addItem(item);
                     itemStack.setAmount(itemStack.getAmount() - 1);
+                    modifiedInventories.add(forgeryInventory.typeName());
                 });
         return InteractionResult.DENY;
     }
@@ -191,7 +196,10 @@ public class StructureBehavior {
 
     public void setInventories(List<ForgeryInventory> forgeryInventories) {
         forgeryInventories.forEach(
-                inventory -> inventories.put(inventory.typeName(), inventory)
+                inventory -> {
+                    inventories.put(inventory.typeName(), inventory);
+                    modifiedInventories.add(inventory.typeName());
+                }
         );
     }
 
@@ -256,16 +264,49 @@ public class StructureBehavior {
     }
 
     private void tickEntities() {
-        // TODO: work with item displays and such
+        if (!structure.origin().toLocation().isChunkLoaded()) {
+            return;
+        }
+        for (ForgeryInventory inventory : inventories.values()) {
+            if (!modifiedInventories.contains(inventory.typeName())) {
+                if (inventoryDisplays.containsKey(inventory.typeName())) {
+                    InventoryDisplay display = inventoryDisplays.get(inventory.typeName());
+                    if (display.needsRefresh()) {
+                        display.display(itemAdapter);
+                    }
+                }
+                continue;
+            }
+            InventoryDisplay display = inventoryDisplays.get(inventory.typeName());
+            if (display == null) {
+                display = new InventoryDisplay(
+                        inventory,
+                        structure.positions()
+                                .stream()
+                                .map(BlockLocation::toBlock)
+                                .filter(block -> inventory.behavior().interfaceBlocks().contains(block.getType().asBlockType()))
+                                .map(Block::getLocation)
+                                .toList(),
+                        inventory.behavior().itemDisplay()
+                );
+                inventoryDisplays.put(inventory.typeName(), display);
+            }
+            display.display(itemAdapter);
+        }
     }
 
     private void tickInventories() {
+        modifiedInventories.clear();
         List<ForgeryInventory> interfaceInventories = inventories.values()
                 .stream()
                 .filter(forgeryInventory -> forgeryInventory.behavior().access() == ForgeryInventory.AccessBehavior.OPENABLE)
                 .filter(forgeryInventory -> !forgeryInventory.getInventory().getViewers().isEmpty())
                 .toList();
-        interfaceInventories.forEach(ForgeryInventory::updateContentsFromInterface);
+        for (ForgeryInventory inventory : interfaceInventories) {
+            if (inventory.updateContentsFromInterface()) {
+                modifiedInventories.add(inventory.typeName());
+            }
+        }
         List<InventoryTransform> transforms = structure.metaValue(StructureMeta.INVENTORY_TRANSFORMS);
         if (transforms != null) {
             transforms.forEach(inventoryTransform -> {
@@ -274,6 +315,7 @@ public class StructureBehavior {
                     long duration = TimeProvider.time() - timePoint;
                     if (duration != 0 && duration % inventoryTransform.decrementTime() == 0) {
                         inventory(inventoryTransform.inventory()).retrieveFirstAndSave();
+                        modifiedInventories.add(inventoryTransform.inventory());
                     }
                 }
             });
@@ -322,6 +364,10 @@ public class StructureBehavior {
 
     public long processStart() {
         return this.processStart;
+    }
+
+    public void destroy() {
+        inventoryDisplays.values().forEach(InventoryDisplay::clear);
     }
 
     public record InteractionResult(Event.Result useBlock, Event.Result useItem) {

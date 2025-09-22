@@ -51,5 +51,5 @@ iron:
     - process_time: 5min
       is_state: has_fuel
   result:
-    material: iron_bar
+    material: iron_ingot
     amount: 10

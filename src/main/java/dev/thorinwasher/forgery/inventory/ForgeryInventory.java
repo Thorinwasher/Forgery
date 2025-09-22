@@ -10,8 +10,11 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ItemType;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.AxisAngle4f;
+import org.joml.Quaternionf;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 import java.util.*;
@@ -182,6 +185,23 @@ public class ForgeryInventory implements InventoryHolder {
     }
 
     public enum ItemDisplayBehavior {
-        UNDER, ABOVE, INSIDE, NONE
+        UNDER, ABOVE, INSIDE, NONE;
+
+        public Vector delta() {
+            return switch (this) {
+                case UNDER -> new Vector(0, -0.125, 0);
+                case ABOVE -> new Vector(0, 1, 0);
+                case INSIDE -> new Vector(0, 0.5, 0);
+                case NONE -> new Vector();
+            };
+        }
+
+        public Quaternionf leftRotation() {
+            return switch (this) {
+                case UNDER, ABOVE -> new AxisAngle4f((float) (Math.PI / 2), 1F, 0F, 0F)
+                        .get(new Quaternionf());
+                case INSIDE, NONE -> new Quaternionf();
+            };
+        }
     }
 }

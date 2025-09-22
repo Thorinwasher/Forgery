@@ -16,7 +16,7 @@
           "minecraft:campfire"
         ],
         "size": 9,
-        "item-display": "none",
+        "item-display": "inside",
         "allows": [
           "coal",
           "charcoal"

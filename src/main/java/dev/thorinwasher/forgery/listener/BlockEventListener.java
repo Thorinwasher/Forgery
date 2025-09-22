@@ -33,9 +33,9 @@ public record BlockEventListener(PlacedStructureRegistry placedStructureRegistry
             Optional<PlacedForgeryStructure> placedStructure = PlacedForgeryStructure.findValid(forgeryStructure, event.getBlockPlaced().getLocation(),
                     () -> new StructureBehavior(UUID.randomUUID(), persistencyAccess, itemAdapter, TimeProvider.time(), recipes, -1L));
             placedStructure.ifPresent(structure -> {
-                event.getPlayer().sendMessage(Component.translatable("Successfully built: " + structure.structure().getName()));
                 placedStructureRegistry.registerStructure(structure);
                 persistencyAccess.database().insert(persistencyAccess.behaviorStoredData(), structure.behavior());
+                event.getPlayer().sendMessage(Component.translatable("Successfully built: " + structure.structure().getName()));
             });
         }
     }
@@ -44,9 +44,10 @@ public record BlockEventListener(PlacedStructureRegistry placedStructureRegistry
     public void onBlockBreak(BlockBreakEvent event) {
         placedStructureRegistry.getStructure(BlockLocation.fromLocation(event.getBlock().getLocation()))
                 .ifPresent(structure -> {
-                    event.getPlayer().sendMessage(Component.translatable("Successfully destroyed " + structure.structure().getName()));
                     placedStructureRegistry.unregisterStructure(structure);
                     persistencyAccess.database().remove(persistencyAccess.behaviorStoredData(), structure.behavior());
+                    structure.holder().destroy();
+                    event.getPlayer().sendMessage(Component.translatable("Successfully destroyed " + structure.structure().getName()));
                 });
     }
 }
