@@ -23,7 +23,7 @@ public final class InventoryDisplay {
     private final Transformation transformation;
 
     public InventoryDisplay(ForgeryInventory inventory, List<Location> locations,
-                            ForgeryInventory.ItemDisplayBehavior displayBehavior, @Nullable Transformation transformation) {
+                            ForgeryInventory.ItemDisplayBehavior displayBehavior, Transformation transformation) {
         this.inventory = inventory;
         this.locations = locations;
         this.displayBehavior = displayBehavior;
@@ -62,13 +62,7 @@ public final class InventoryDisplay {
                     display.setPersistent(false);
                     display.setItemStack(bukkit);
                     display.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
-                    Transformation previous = display.getTransformation();
-                    display.setTransformation(transformation != null ? transformation : new Transformation(
-                            new Vector3f(0F, 0F, 0F),
-                            displayBehavior.leftRotation(),
-                            new Vector3f(0.25F, 0.25F, 0.25F),
-                            previous.getRightRotation()
-                    ));
+                    display.setTransformation(transformation);
                 });
                 previouslyPopulated.add(itemDisplay);
             }

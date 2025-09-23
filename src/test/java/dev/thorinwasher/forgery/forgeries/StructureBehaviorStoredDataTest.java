@@ -37,11 +37,11 @@ class StructureBehaviorStoredDataTest {
     private StructureRegistry structureRegistry;
     private ForgeryInventory.Behavior inventoryBehavior1 = new ForgeryInventory.Behavior(
             ForgeryInventory.AccessBehavior.INSERTABLE, ForgeryInventory.ItemDisplayBehavior.ABOVE,
-            9, Set.of(), Set.of()
+            9, Set.of(), Set.of(), null
     );
     private ForgeryInventory.Behavior inventoryBehavior2 = new ForgeryInventory.Behavior(
             ForgeryInventory.AccessBehavior.OPENABLE, ForgeryInventory.ItemDisplayBehavior.NONE,
-            18, Set.of(), Set.of()
+            18, Set.of(), Set.of(), null
     );
     private PersistencyAccess persistencyAccess;
     private ItemAdapter itemAdapter;

@@ -19,8 +19,11 @@ import org.bukkit.event.Event;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -283,6 +286,14 @@ public class StructureBehavior {
             }
             InventoryDisplay display = inventoryDisplays.get(inventory.typeName());
             if (display == null) {
+                Transformation transformation = inventory.behavior().transformation() != null ? inventory.behavior().transformation() :
+                        new Transformation(
+                                new Vector3f(),
+                                inventory.behavior().itemDisplay().leftRotation(),
+                                new Vector3f(0.25F, 0.25F, 0.25F),
+                                new Quaternionf()
+                        );
+                transformation = structure.adjustTransformation(transformation);
                 display = new InventoryDisplay(
                         inventory,
                         structure.positions()
@@ -292,7 +303,7 @@ public class StructureBehavior {
                                 .map(Block::getLocation)
                                 .toList(),
                         inventory.behavior().itemDisplay(),
-                        inventory.behavior().transformation()
+                        transformation
                 );
                 inventoryDisplays.put(inventory.typeName(), display);
             }

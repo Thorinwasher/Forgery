@@ -3,8 +3,11 @@ package dev.thorinwasher.forgery.structure;
 import dev.thorinwasher.forgery.forgeries.StructureBehavior;
 import dev.thorinwasher.forgery.vector.BlockLocation;
 import org.bukkit.Location;
+import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3d;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.util.Arrays;
 import java.util.List;
@@ -59,9 +62,8 @@ public record PlacedForgeryStructure
         for (int i = 0; i < 4; i++) {
             output.add(transformation.rotate(Math.PI / 2 * i, 0, 1, 0, new Matrix3d()));
         }
-        transformation.reflect(1, 0, 0);
         for (int i = 0; i < 4; i++) {
-            output.add(transformation.rotate(Math.PI / 2 * i, 0, 1, 0, new Matrix3d()));
+            output.add(transformation.rotate(Math.PI / 2 * i, 0, 1, 0, new Matrix3d()).negateX());
         }
         return output
                 .build()
@@ -78,5 +80,18 @@ public record PlacedForgeryStructure
 
     public BlockLocation origin() {
         return worldOrigin;
+    }
+
+    public Transformation adjustTransformation(Transformation bukkitTransformation) {
+        return new Transformation(
+                transformation.transform(bukkitTransformation.getTranslation(), new Vector3f()),
+                rotateQuaternionf(bukkitTransformation.getLeftRotation()),
+                bukkitTransformation.getScale(),
+                bukkitTransformation.getRightRotation()
+        );
+    }
+
+    private Quaternionf rotateQuaternionf(Quaternionf input) {
+        return transformation.rotate(input, new Matrix3d()).getNormalizedRotation(new Quaternionf());
     }
 }
