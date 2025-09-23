@@ -3,8 +3,8 @@ pig_iron_1:
   steps:
     - target_inventory: furnace
       ingredients:
-        iron_ore: 10
-        coal: 7
+        iron_ore: 2
+        coal: 1
     - process_time: 5min
       is_state: has_fuel
     - process_time: 2min
@@ -12,14 +12,14 @@ pig_iron_1:
   result:
     name: Pig iron ingot
     stored-item: forgery:pig_iron
-    amount: 10
+    amount: 2
 pig_iron_2:
   structure-type: blast_furnace
   steps:
     - target_inventory: furnace
       ingredients:
-        raw_iron: 10
-        coal: 7
+        raw_iron: 2
+        coal: 1
     - process_time: 5min
       is_state: has_fuel
     - process_time: 2min
@@ -27,7 +27,7 @@ pig_iron_2:
   result:
     name: Pig iron ingot
     stored-item: forgery:pig_iron
-    amount: 10
+    amount: 2
 glass:
   structure-type: blast_furnace
   steps:
@@ -47,9 +47,9 @@ iron:
   steps:
     - target_inventory: smelter
       ingredients:
-        forgery:pig_iron: 10
+        forgery:pig_iron: 1
     - process_time: 5min
       is_state: has_fuel
   result:
     material: iron_ingot
-    amount: 10
+    amount: 1

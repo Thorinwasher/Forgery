@@ -22,26 +22,26 @@ public class RecipeProcedureEvaluator {
 
     public static Optional<ItemStack> findRecipeResult(Map<String, List<StructureStateChange>> change, List<ForgingItem> itemInput,
                                                        long processStart, Collection<Recipe> recipes, ItemAdapter adapter, String structureType) {
-        List<Pair<Recipe, Double>> evaluated = recipes.stream()
+        List<Pair<Pair<Recipe, Integer>, Double>> evaluated = recipes.stream()
                 .filter(recipe -> structureType.equals(recipe.structureType()))
                 .map(recipe -> new Pair<>(recipe, evaluateRecipe(change, itemInput, recipe, processStart)))
-                .filter(pair -> pair.second().get("state_changes") >= 0.3)
+                .filter(pair -> pair.second().first().get("state_changes") >= 0.3)
                 .map(pair ->
-                        new Pair<>(pair.first(), pair.second().values().stream().reduce(1D, ((aDouble, aDouble2) -> aDouble * aDouble2)))
+                        new Pair<>(new Pair<>(pair.first(), pair.second().second()), pair.second().first().values().stream().reduce(1D, ((aDouble, aDouble2) -> aDouble * aDouble2)))
                 )
                 .sorted(Comparator.comparing(Pair::second))
                 .toList();
         if (evaluated.isEmpty()) {
             return Optional.empty();
         }
-        Pair<Recipe, Double> winner = evaluated.getLast();
+        Pair<Pair<Recipe, Integer>, Double> winner = evaluated.getLast();
         if (winner.second() < 0.3) {
             return Optional.of(ItemAdapter.failedItem());
         }
-        RecipeResult recipeResult = winner.first().result();
+        RecipeResult recipeResult = winner.first().first().result();
         ItemStack itemStack = recipeResult.itemWriter()
                 .write(adapter.registry(), (int) Math.ceil(winner.second() * 10D));
-        itemStack.setAmount(recipeResult.amount());
+        itemStack.setAmount(recipeResult.amount() * winner.first().second());
         if (recipeResult.name() != null) {
             itemStack.setData(DataComponentTypes.CUSTOM_NAME, recipeResult.name()
                     .decoration(TextDecoration.ITALIC, false)
@@ -51,8 +51,8 @@ public class RecipeProcedureEvaluator {
         return Optional.of(itemStack);
     }
 
-    private static Map<String, Double> evaluateRecipe(Map<String, List<StructureStateChange>> change, List<ForgingItem> itemInput,
-                                                      Recipe recipe, long processStart) {
+    private static Pair<Map<String, Double>, Integer> evaluateRecipe(Map<String, List<StructureStateChange>> change, List<ForgingItem> itemInput,
+                                                                     Recipe recipe, long processStart) {
         double structureChangeScore = evaluateStructureStateChanges(change, processStart, recipe);
         Map<ForgingMaterial, Integer> ingredients = new HashMap<>();
         for (ForgingStep forgingStep : recipe.steps().steps()) {
@@ -64,7 +64,7 @@ public class RecipeProcedureEvaluator {
                 ingredients.put(material, ingredients.getOrDefault(material, 0) + integer);
             });
         }
-        double ingredientScore;
+        Pair<Double, Integer> ingredientScore;
         Map<ForgingMaterial, Integer> actualIngredients = new HashMap<>();
         itemInput.stream()
                 .filter(item -> item.material() != null)
@@ -72,9 +72,9 @@ public class RecipeProcedureEvaluator {
         if (!ingredients.isEmpty()) {
             ingredientScore = evaluateIngredients(ingredients, actualIngredients);
         } else {
-            ingredientScore = actualIngredients.isEmpty() ? 1D : 0D;
+            ingredientScore = new Pair<>(actualIngredients.isEmpty() ? 1D : 0D, 1);
         }
-        return Map.of("ingredients", ingredientScore, "state_changes", structureChangeScore);
+        return new Pair<>(Map.of("ingredients", ingredientScore.first(), "state_changes", structureChangeScore), ingredientScore.second());
     }
 
     public static double nearbyValueScore(long expected, long value) {
@@ -82,7 +82,7 @@ public class RecipeProcedureEvaluator {
         return 1 - Math.max(diff / expected, 0D);
     }
 
-    public static double evaluateIngredients(Map<ForgingMaterial, Integer> target, Map<ForgingMaterial, Integer> actual) {
+    public static Pair<Double, Integer> evaluateIngredients(Map<ForgingMaterial, Integer> target, Map<ForgingMaterial, Integer> actual) {
         double ingredientScore = target.entrySet().stream()
                 .map(entry -> Math.pow(entry.getKey().normalizedScore(), entry.getValue()))
                 .reduce(1D, (aDouble, aDouble2) -> aDouble * aDouble2);
@@ -94,16 +94,30 @@ public class RecipeProcedureEvaluator {
         Map<ForgeryKey, Integer> modifiedActual = actual.entrySet().stream()
                 .collect(Collectors.toMap(entry -> entry.getKey().key(), Map.Entry::getValue));
         if (modifiedTarget.size() != modifiedActual.size()) {
-            return 0;
+            return new Pair<>(0D, 1);
         }
+        int repetitions = findRepetitions(modifiedTarget, modifiedActual);
         for (Map.Entry<ForgeryKey, Integer> targetEntry : modifiedTarget.entrySet()) {
             Integer actualAmount = modifiedActual.get(targetEntry.getKey());
             if (actualAmount == null || actualAmount == 0) {
-                return 0;
+                return new Pair<>(0D, 1);
             }
-            output *= nearbyValueScore(targetEntry.getValue(), actualAmount);
+            output *= nearbyValueScore((long) targetEntry.getValue() * repetitions, actualAmount);
         }
-        return output;
+        return new Pair<>(output, repetitions);
+    }
+
+    private static int findRepetitions(Map<ForgeryKey, Integer> modifiedTarget, Map<ForgeryKey, Integer> modifiedActual) {
+        int repetitions = -1;
+        for (Map.Entry<ForgeryKey, Integer> targetEntry : modifiedTarget.entrySet()) {
+            Integer actualAmount = modifiedActual.get(targetEntry.getKey());
+            if (actualAmount == null || actualAmount == 0) {
+                return 1;
+            }
+            int ceilDiv = Math.ceilDiv(actualAmount, targetEntry.getValue());
+            repetitions = (repetitions == -1) ? ceilDiv : Math.min(repetitions, ceilDiv);
+        }
+        return repetitions == -1 ? 1 : repetitions;
     }
 
     private static double evaluateStructureStateChanges(Map<String, List<StructureStateChange>> changes, long processStart,
