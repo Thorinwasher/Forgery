@@ -46,7 +46,7 @@ public record BlockEventListener(PlacedStructureRegistry placedStructureRegistry
                 .ifPresent(structure -> {
                     placedStructureRegistry.unregisterStructure(structure);
                     persistencyAccess.database().remove(persistencyAccess.behaviorStoredData(), structure.behavior());
-                    structure.holder().destroy();
+                    structure.holder().destroy(event.getBlock());
                     event.getPlayer().sendMessage(Component.translatable("Successfully destroyed " + structure.structure().getName()));
                 });
     }

@@ -11,6 +11,7 @@ import dev.thorinwasher.forgery.recipe.RecipeProcedureEvaluator;
 import dev.thorinwasher.forgery.structure.*;
 import dev.thorinwasher.forgery.vector.BlockLocation;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockType;
 import org.bukkit.entity.Player;
@@ -98,7 +99,7 @@ public class StructureBehavior {
                         recipes.values(),
                         itemAdapter,
                         structure.structure().getName()
-                );
+                ).orElse(null);
             }
             if (recipeOutput != null && forgeryInventory.typeName().equalsIgnoreCase(structure.metaValue(StructureMeta.OUTPUT_INVENTORY))) {
                 inventories.values().forEach(ForgeryInventory::clear);
@@ -268,6 +269,9 @@ public class StructureBehavior {
             return;
         }
         for (ForgeryInventory inventory : inventories.values()) {
+            if (inventory.behavior().itemDisplay() == ForgeryInventory.ItemDisplayBehavior.NONE) {
+                continue;
+            }
             if (!modifiedInventories.contains(inventory.typeName())) {
                 if (inventoryDisplays.containsKey(inventory.typeName())) {
                     InventoryDisplay display = inventoryDisplays.get(inventory.typeName());
@@ -366,8 +370,15 @@ public class StructureBehavior {
         return this.processStart;
     }
 
-    public void destroy() {
+    public void destroy(Block block) {
         inventoryDisplays.values().forEach(InventoryDisplay::clear);
+        Location centered = block.getLocation().toCenterLocation();
+        for (ForgeryInventory inventory : inventories.values()) {
+            inventory.items().stream()
+                    .map(ForgeryInventory.ItemRecord::forgeryItem)
+                    .map(itemAdapter::toBukkit)
+                    .forEach(item -> centered.getWorld().dropItemNaturally(centered, item));
+        }
     }
 
     public record InteractionResult(Event.Result useBlock, Event.Result useItem) {

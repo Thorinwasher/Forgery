@@ -20,19 +20,23 @@ import java.util.stream.Collectors;
 
 public class RecipeProcedureEvaluator {
 
-    public static ItemStack findRecipeResult(Map<String, List<StructureStateChange>> change, List<ForgingItem> itemInput,
-                                             long processStart, Collection<Recipe> recipes, ItemAdapter adapter, String structureType) {
+    public static Optional<ItemStack> findRecipeResult(Map<String, List<StructureStateChange>> change, List<ForgingItem> itemInput,
+                                                       long processStart, Collection<Recipe> recipes, ItemAdapter adapter, String structureType) {
         List<Pair<Recipe, Double>> evaluated = recipes.stream()
                 .filter(recipe -> structureType.equals(recipe.structureType()))
                 .map(recipe -> new Pair<>(recipe, evaluateRecipe(change, itemInput, recipe, processStart)))
+                .filter(pair -> pair.second().get("state_changes") >= 0.3)
+                .map(pair ->
+                        new Pair<>(pair.first(), pair.second().values().stream().reduce(1D, ((aDouble, aDouble2) -> aDouble * aDouble2)))
+                )
                 .sorted(Comparator.comparing(Pair::second))
                 .toList();
         if (evaluated.isEmpty()) {
-            return ItemAdapter.failedItem();
+            return Optional.empty();
         }
         Pair<Recipe, Double> winner = evaluated.getLast();
         if (winner.second() < 0.3) {
-            return ItemAdapter.failedItem();
+            return Optional.of(ItemAdapter.failedItem());
         }
         RecipeResult recipeResult = winner.first().result();
         ItemStack itemStack = recipeResult.itemWriter()
@@ -44,11 +48,11 @@ public class RecipeProcedureEvaluator {
                     .colorIfAbsent(NamedTextColor.WHITE)
             );
         }
-        return itemStack;
+        return Optional.of(itemStack);
     }
 
-    private static double evaluateRecipe(Map<String, List<StructureStateChange>> change, List<ForgingItem> itemInput,
-                                         Recipe recipe, long processStart) {
+    private static Map<String, Double> evaluateRecipe(Map<String, List<StructureStateChange>> change, List<ForgingItem> itemInput,
+                                                      Recipe recipe, long processStart) {
         double structureChangeScore = evaluateStructureStateChanges(change, processStart, recipe);
         Map<ForgingMaterial, Integer> ingredients = new HashMap<>();
         for (ForgingStep forgingStep : recipe.steps().steps()) {
@@ -70,7 +74,7 @@ public class RecipeProcedureEvaluator {
         } else {
             ingredientScore = actualIngredients.isEmpty() ? 1D : 0D;
         }
-        return ingredientScore * structureChangeScore;
+        return Map.of("ingredients", ingredientScore, "state_changes", structureChangeScore);
     }
 
     public static double nearbyValueScore(long expected, long value) {
@@ -105,12 +109,20 @@ public class RecipeProcedureEvaluator {
     private static double evaluateStructureStateChanges(Map<String, List<StructureStateChange>> changes, long processStart,
                                                         Recipe recipe) {
         Map<String, List<StructureStateTimePoint>> expectedChanges = new HashMap<>();
-        long timePoint = processStart;
+        long timePoint = -1;
         for (ForgingStep step : recipe.steps().steps()) {
             if (!step.properties().containsKey(ForgingStepProperty.IS_STATE) && !step.properties().containsKey(ForgingStepProperty.NOT_STATE)) {
                 continue;
             }
             long duration = step.getOrDefault(ForgingStepProperty.PROCESS_TIME, new Duration(1L)).duration();
+            if (timePoint == -1) {
+                boolean active = step.properties().containsKey(ForgingStepProperty.IS_STATE);
+                timePoint = calculateProcessStart(changes,
+                        processStart,
+                        step.getOrThrow(active ? ForgingStepProperty.IS_STATE : ForgingStepProperty.NOT_STATE),
+                        active
+                );
+            }
             if (step.properties().containsKey(ForgingStepProperty.IS_STATE)) {
                 expectedChanges.computeIfAbsent(step.getOrThrow(ForgingStepProperty.IS_STATE), ignore -> new ArrayList<>())
                         .add(new StructureStateTimePoint(
@@ -143,6 +155,19 @@ public class RecipeProcedureEvaluator {
             precisionScore *= calculateStateChangeMatch(expectedChanges.get(state), actualChanges, TimeProvider.time(), processStart);
         }
         return Math.pow(precisionScore, 1D / expectedChanges.size());
+    }
+
+    private static long calculateProcessStart(Map<String, List<StructureStateChange>> changes, long defaultValue, String state, boolean active) {
+        List<StructureStateChange> stateChanges = changes.get(state);
+        if (stateChanges == null) {
+            return defaultValue;
+        }
+        for (StructureStateChange stateChange : stateChanges) {
+            if ((stateChange.action() == StructureStateChange.Action.ADD) == active && stateChange.timePoint() > defaultValue) {
+                return stateChange.timePoint();
+            }
+        }
+        return defaultValue;
     }
 
     private static double calculateStateChangeMatch(List<StructureStateTimePoint> expectedStates, List<StructureStateChange> actualChanges, long end, long start) {
