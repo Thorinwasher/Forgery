@@ -8,6 +8,7 @@ import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.ArrayList;
@@ -19,12 +20,14 @@ public final class InventoryDisplay {
     private final List<Location> locations;
     private final ForgeryInventory.ItemDisplayBehavior displayBehavior;
     private final List<ItemDisplay> previouslyPopulated = new ArrayList<>();
+    private final Transformation transformation;
 
     public InventoryDisplay(ForgeryInventory inventory, List<Location> locations,
-                            ForgeryInventory.ItemDisplayBehavior displayBehavior) {
+                            ForgeryInventory.ItemDisplayBehavior displayBehavior, @Nullable Transformation transformation) {
         this.inventory = inventory;
         this.locations = locations;
         this.displayBehavior = displayBehavior;
+        this.transformation = transformation;
     }
 
 
@@ -60,7 +63,7 @@ public final class InventoryDisplay {
                     display.setItemStack(bukkit);
                     display.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.FIXED);
                     Transformation previous = display.getTransformation();
-                    display.setTransformation(new Transformation(
+                    display.setTransformation(transformation != null ? transformation : new Transformation(
                             new Vector3f(0F, 0F, 0F),
                             displayBehavior.leftRotation(),
                             new Vector3f(0.25F, 0.25F, 0.25F),

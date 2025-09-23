@@ -1,0 +1,30 @@
+{
+  "schem_file": "cauldron.schem",
+  "meta": {
+    "inventories": {
+      "water_cooler": {
+        "access": "insertable",
+        "interface-blocks": [
+          "minecraft:water_cauldron"
+        ],
+        "size": 1,
+        "item-display": "inside",
+        "transformation": {
+          "translation": "0,0.2,0",
+          "left-rotation": "3.9269908,0,0,1",
+          "scale": "0.5,0.5,0.5"
+        }
+      }
+    },
+    "output_inventory": "water_cooler",
+    "inventory_transforms": [],
+    "block_transforms": [],
+    "states": {},
+    "process_parameters": [
+      "time",
+      "ingredients",
+      "target_inventory"
+    ],
+    "heat_result": 1200
+  }
+}

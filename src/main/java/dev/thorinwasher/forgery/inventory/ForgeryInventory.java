@@ -10,6 +10,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ItemType;
+import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -176,7 +177,8 @@ public class ForgeryInventory implements InventoryHolder {
 
     @ConfigSerializable
     public record Behavior(AccessBehavior access, ItemDisplayBehavior itemDisplay, int size,
-                           Set<BlockType> interfaceBlocks, Set<ItemType> allows) {
+                           Set<BlockType> interfaceBlocks, Set<ItemType> allows,
+                           @Nullable Transformation transformation) {
     }
 
     public enum AccessBehavior {

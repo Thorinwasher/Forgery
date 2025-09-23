@@ -1,0 +1,29 @@
+{
+  "schem_file": "anvil.schem",
+  "meta": {
+    "inventories": {
+      "anvil": {
+        "access": "insertable",
+        "interface-blocks": [
+          "minecraft:anvil"
+        ],
+        "size": 1,
+        "item-display": "above",
+        "transformation": {
+          "left-rotation":"1.570796,1,0,0",
+          "scale": "0.5,0.5,0.5"
+        }
+      }
+    },
+    "output_inventory": "anvil",
+    "inventory_transforms": [],
+    "block_transforms": [],
+    "states": {},
+    "process_parameters": [
+      "time",
+      "ingredients",
+      "target_inventory"
+    ],
+    "heat_result": 1200
+  }
+}

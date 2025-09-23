@@ -17,6 +17,9 @@ import io.papermc.paper.registry.RegistryKey;
 import org.bukkit.block.BlockType;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.inventory.ItemType;
+import org.bukkit.util.Transformation;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationOptions;
 import org.spongepowered.configurate.gson.GsonConfigurationLoader;
@@ -47,7 +50,10 @@ public class Serialize {
                 .register(BlockTransform.class, new BlockTransformSerializer())
                 .register(Condition.class, new ConditionSerializer())
                 .register(Duration.class, new DurationSerializer())
-                .register(ItemType.class, new KeyedSerializer<>(RegistryKey.ITEM));
+                .register(ItemType.class, new KeyedSerializer<>(RegistryKey.ITEM))
+                .register(Transformation.class, new TransformationSerializer())
+                .register(Vector3f.class, new Vector3fSerializer())
+                .register(Quaternionf.class, new QuaternionfSerializer());
     }
 
     public static <T> Optional<String> asJson(TypeToken<T> token, T value) {

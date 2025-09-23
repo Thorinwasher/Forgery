@@ -291,7 +291,8 @@ public class StructureBehavior {
                                 .filter(block -> inventory.behavior().interfaceBlocks().contains(block.getType().asBlockType()))
                                 .map(Block::getLocation)
                                 .toList(),
-                        inventory.behavior().itemDisplay()
+                        inventory.behavior().itemDisplay(),
+                        inventory.behavior().transformation()
                 );
                 inventoryDisplays.put(inventory.typeName(), display);
             }

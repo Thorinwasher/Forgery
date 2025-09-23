@@ -50,7 +50,7 @@ public class InventoryStoredData implements StoredData<InventoryStoredData.Inven
                 }
                 output.add(new InventoryInfo(searchObject.structureUuid(),
                         new ForgeryInventory(
-                                new ForgeryInventory.Behavior(behavior.access(), behavior.itemDisplay(), size, behavior.interfaceBlocks(), behavior.allows()),
+                                new ForgeryInventory.Behavior(behavior.access(), behavior.itemDisplay(), size, behavior.interfaceBlocks(), behavior.allows(), behavior.transformation()),
                                 inventoryType,
                                 persistencyAccess,
                                 searchObject.structureUuid(),
