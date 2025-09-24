@@ -1,0 +1,11 @@
+hammer:
+  shape: |
+    a
+    e
+  materials:
+    a: forgery:pig_iron
+    e: stick
+  result:
+    material: mace
+    name: Hammer
+    tool-id: hammer

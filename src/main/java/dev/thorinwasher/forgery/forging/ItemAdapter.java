@@ -7,7 +7,6 @@ import dev.thorinwasher.forgery.inventory.ForgingItem;
 import dev.thorinwasher.forgery.inventory.ForgingMaterial;
 import dev.thorinwasher.forgery.inventory.ForgingMaterialPersistentDataType;
 import io.papermc.paper.datacomponent.DataComponentTypes;
-import io.papermc.paper.datacomponent.item.ItemLore;
 import io.papermc.paper.persistence.PersistentDataContainerView;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
@@ -57,9 +56,13 @@ public record ItemAdapter(IntegrationRegistry registry) {
 
     public static ItemStack failedItem() {
         ItemStack itemStack = new ItemStack(Material.STONE);
-        itemStack.setData(DataComponentTypes.LORE, ItemLore.lore(List.of(
-                Component.text("Failed slag")
-        )));
+        itemStack.setData(DataComponentTypes.CUSTOM_NAME, Component.text("Failed slag"));
+        return itemStack;
+    }
+
+    public static ItemStack placeholder() {
+        ItemStack itemStack = new ItemStack(Material.GLASS);
+        itemStack.setData(DataComponentTypes.CUSTOM_NAME, Component.text("Placeholder"));
         return itemStack;
     }
 }

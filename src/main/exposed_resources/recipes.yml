@@ -10,8 +10,7 @@ pig_iron_1:
     - process_time: 2min
       not_state: has_fuel
   result:
-    name: Pig iron ingot
-    stored-item: forgery:pig_iron
+    material: forgery:pig_iron
     amount: 2
 pig_iron_2:
   structure-type: blast_furnace
@@ -25,8 +24,7 @@ pig_iron_2:
     - process_time: 2min
       not_state: has_fuel
   result:
-    name: Pig iron ingot
-    stored-item: forgery:pig_iron
+    material: forgery:pig_iron
     amount: 2
 glass:
   structure-type: blast_furnace

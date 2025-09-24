@@ -42,7 +42,7 @@ public class ForgeryItemIntegration implements ItemIntegration {
         }
         NamespacedKey key = Forgery.key(material.key().key());
         return Optional.ofNullable(itemReferences.get(key))
-                .map(itemReference -> itemReference.write(null, material.score()));
+                .map(itemReference -> itemReference.write(material.score()));
     }
 
     @Override
