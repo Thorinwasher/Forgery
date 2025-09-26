@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class StructureBehaviorStoredData implements UpdateableStoredData<StructureBehavior, UUID> {
 
@@ -85,7 +86,7 @@ public class StructureBehaviorStoredData implements UpdateableStoredData<Structu
                             .find(behavior.uuid(), connection)
                             .stream()
                             .map(ToolInputStoredData.LinkedToolInput::toolInput)
-                            .toList()
+                            .collect(Collectors.toList())
             );
         }
         return output;

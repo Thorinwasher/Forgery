@@ -132,7 +132,8 @@ public class StructureBehavior {
                         processStart,
                         recipes.values(),
                         itemAdapter,
-                        structure.structure().getName()
+                        structure.structure().getName(),
+                        toolHistory
                 ).orElse(null);
             }
             if (recipeOutput != null && forgeryInventory.typeName().equalsIgnoreCase(structure.metaValue(StructureMeta.OUTPUT_INVENTORY))) {

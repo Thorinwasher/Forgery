@@ -4,6 +4,7 @@ import dev.thorinwasher.forgery.database.PersistencyAccess;
 import dev.thorinwasher.forgery.recipe.ItemReference;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.ItemAttributeModifiers;
+import io.papermc.paper.datacomponent.item.Tool;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -18,6 +19,7 @@ public class ItemPresets {
         saveItemReferenceIfNotExists(new ItemReference("pig_iron", pigIron()), itemReferences, access);
         saveItemReferenceIfNotExists(new ItemReference("pig_iron_nugget", pigIronNugget()), itemReferences, access);
         saveItemReferenceIfNotExists(new ItemReference("hammer", hammer()), itemReferences, access);
+        saveItemReferenceIfNotExists(new ItemReference("pliers", pliers()), itemReferences, access);
     }
 
     private static ItemStack hammer() {
@@ -25,6 +27,8 @@ public class ItemPresets {
         hammer.unsetData(DataComponentTypes.WEAPON);
         hammer.setData(DataComponentTypes.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.itemAttributes()
                 .build());
+        hammer.setData(DataComponentTypes.CUSTOM_NAME, Component.text("Hammer")
+                .decoration(TextDecoration.ITALIC, false));
         return hammer;
     }
 
@@ -48,5 +52,13 @@ public class ItemPresets {
         pigIron.setData(DataComponentTypes.CUSTOM_NAME, Component.text("Pig iron nugget")
                 .decoration(TextDecoration.ITALIC, false));
         return pigIron;
+    }
+
+    private static ItemStack pliers() {
+        ItemStack pliers = new ItemStack(Material.SHEARS);
+        pliers.setData(DataComponentTypes.CUSTOM_NAME, Component.text("Pliers")
+                .decoration(TextDecoration.ITALIC, false));
+        pliers.setData(DataComponentTypes.TOOL, Tool.tool().build());
+        return pliers;
     }
 }

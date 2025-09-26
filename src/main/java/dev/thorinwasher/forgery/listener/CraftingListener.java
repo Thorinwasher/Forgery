@@ -10,6 +10,8 @@ import org.bukkit.event.block.CrafterCraftEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.inventory.*;
 
+import java.util.Objects;
+
 public record CraftingListener(ItemAdapter adapter) implements Listener {
 
 
@@ -55,6 +57,7 @@ public record CraftingListener(ItemAdapter adapter) implements Listener {
                 }
                 if (forgery.toForgery(itemStack).isPresent() && shapedRecipe.getChoiceMap().values()
                         .stream()
+                        .filter(Objects::nonNull)
                         .anyMatch(choice -> choice.test(itemStack) && choice instanceof RecipeChoice.MaterialChoice)
                 ) {
                     return true;

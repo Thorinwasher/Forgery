@@ -7,5 +7,15 @@ hammer:
     e: stick
   result:
     material: forgery:hammer
-    name: Hammer
     tool-id: hammer
+pliers:
+  shape: |
+    a a
+     a 
+    e e
+  materials:
+    a: forgery:pig_iron
+    e: stick
+  result:
+    material: forgery:pliers
+    tool-id: pliers

@@ -33,6 +33,12 @@
           "minecraft:anvil"
         ],
         "interact-sound": "minecraft:block.anvil.use"
+      },
+      "pliers": {
+        "interface-blocks": [
+          "minecraft:anvil"
+        ],
+        "interact-sound": "minecraft:block.anvil.use"
       }
     }
   }

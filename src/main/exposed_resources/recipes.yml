@@ -27,9 +27,9 @@ pig_iron_2:
     material: forgery:pig_iron
     amount: 2
 glass:
-  structure-type: blast_furnace
+  structure-type: smelter
   steps:
-    - target_inventory: furnace
+    - target_inventory: smelter
       ingredients:
         sand: 12
     - process_time: 5min
@@ -50,4 +50,15 @@ iron:
       is_state: has_fuel
   result:
     material: iron_ingot
-    amount: 1
+iron_sword:
+  structure-type: anvil
+  steps:
+    - target_inventory: anvil
+      ingredients:
+        iron_ingot: 1
+    - tool_input: hammer
+    - tool_input: pliers
+    - tool_input: pliers
+    - tool_input: hammer
+  result:
+    material: iron_sword
