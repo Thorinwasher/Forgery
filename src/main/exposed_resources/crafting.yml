@@ -6,6 +6,6 @@ hammer:
     a: forgery:pig_iron
     e: stick
   result:
-    material: mace
+    material: forgery:hammer
     name: Hammer
     tool-id: hammer

@@ -9,6 +9,7 @@ import dev.thorinwasher.forgery.forgeries.StructureBehavior;
 import dev.thorinwasher.forgery.forging.ItemAdapter;
 import dev.thorinwasher.forgery.integration.IntegrationRegistry;
 import dev.thorinwasher.forgery.listener.BlockEventListener;
+import dev.thorinwasher.forgery.listener.CraftingListener;
 import dev.thorinwasher.forgery.listener.PlayerEventListener;
 import dev.thorinwasher.forgery.listener.WorldEventListener;
 import dev.thorinwasher.forgery.recipe.CraftingRecipe;
@@ -18,18 +19,14 @@ import dev.thorinwasher.forgery.recipe.RecipeResult;
 import dev.thorinwasher.forgery.serialize.RecipeResultSerializer;
 import dev.thorinwasher.forgery.serialize.Serialize;
 import dev.thorinwasher.forgery.structure.*;
+import dev.thorinwasher.forgery.util.ItemPresets;
 import io.leangen.geantyref.TypeFactory;
-import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.kyori.adventure.key.Key;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.spongepowered.configurate.ConfigurateException;
@@ -81,7 +78,7 @@ public class Forgery extends JavaPlugin {
         itemReferences = database.find(persistencyAccess.itemStoredData(), null).join()
                 .stream()
                 .collect(Collectors.toMap(ItemReference::getKey, itemReference -> itemReference));
-        saveItemReferenceIfNotExists(new ItemReference("pig_iron", pigIron()));
+        ItemPresets.saveAllIfNotExists(itemReferences, persistencyAccess);
         integrationRegistry.initialize(itemReferences);
         loadStructures();
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, new ForgeryCommand(itemReferences, persistencyAccess)::register);
@@ -102,21 +99,8 @@ public class Forgery extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new BlockEventListener(placedStructureRegistry, structureRegistry, persistencyAccess, itemAdapter, recipes), this);
         Bukkit.getPluginManager().registerEvents(new PlayerEventListener(placedStructureRegistry), this);
         Bukkit.getPluginManager().registerEvents(new WorldEventListener(persistencyAccess, placedStructureRegistry), this);
+        Bukkit.getPluginManager().registerEvents(new CraftingListener(itemAdapter), this);
         loadAndRegisterCraftingRecipes(itemAdapter);
-    }
-
-    private ItemStack pigIron() {
-        ItemStack pigIron = new ItemStack(Material.IRON_INGOT);
-        pigIron.setData(DataComponentTypes.CUSTOM_NAME, Component.text("Pig iron ingot")
-                .decoration(TextDecoration.ITALIC, false));
-        return pigIron;
-    }
-
-    private void saveItemReferenceIfNotExists(ItemReference itemReference) {
-        if (!itemReferences.containsKey(itemReference.getKey())) {
-            itemReferences.put(itemReference.getKey(), itemReference);
-            persistencyAccess.database().insert(persistencyAccess.itemStoredData(), itemReference);
-        }
     }
 
     private void loadStructures() {
