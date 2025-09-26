@@ -16,6 +16,7 @@ import dev.thorinwasher.forgery.util.ForgeryKey;
 import io.leangen.geantyref.TypeToken;
 import io.papermc.paper.registry.RegistryKey;
 import net.kyori.adventure.text.Component;
+import org.bukkit.Sound;
 import org.bukkit.block.BlockType;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.inventory.ItemType;
@@ -57,7 +58,8 @@ public class Serialize {
                 .register(Vector3f.class, new Vector3fSerializer())
                 .register(Quaternionf.class, new QuaternionfSerializer())
                 .register(Component.class, new ComponentSerializer())
-                .register(CraftingRecipe.class, new CraftingRecipeSerializer());
+                .register(CraftingRecipe.class, new CraftingRecipeSerializer())
+                .register(Sound.class, new SoundSerializer());
     }
 
     public static <T> Optional<String> asJson(TypeToken<T> token, T value) {

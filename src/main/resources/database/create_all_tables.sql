@@ -61,3 +61,13 @@ CREATE TABLE IF NOT EXISTS item
     item_data BLOB,
     PRIMARY KEY (item_key)
 );
+
+CREATE TABLE IF NOT EXISTS tool_input
+(
+    structure_uuid BINARY(16),
+    tool           TEXT,
+    time_stamp     INTEGER,
+    FOREIGN KEY (structure_uuid)
+        REFERENCES structure (uuid)
+        ON UPDATE CASCADE ON DELETE CASCADE
+);

@@ -1,16 +1,15 @@
 package dev.thorinwasher.forgery.recipe;
 
-import dev.thorinwasher.forgery.Forgery;
 import dev.thorinwasher.forgery.forging.ItemAdapter;
 import dev.thorinwasher.forgery.integration.IntegrationRegistry;
 import dev.thorinwasher.forgery.inventory.ForgingMaterial;
 import dev.thorinwasher.forgery.util.ForgeryKey;
+import dev.thorinwasher.forgery.util.PdcKeys;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.ItemLore;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Nullable;
@@ -19,8 +18,6 @@ import java.util.List;
 
 public record RecipeResult(ForgeryKey key, int amount, boolean overrideLore, List<Component> lore,
                            @Nullable Component name, @Nullable String toolId) {
-
-    private static final NamespacedKey TOOL_KEY = Forgery.key("tool");
 
 
     public ItemStack get(int score, IntegrationRegistry registry) {
@@ -46,7 +43,7 @@ public record RecipeResult(ForgeryKey key, int amount, boolean overrideLore, Lis
         }
         if (toolId() != null) {
             itemStack.editPersistentDataContainer(pdc -> {
-                pdc.set(TOOL_KEY, PersistentDataType.STRING, toolId());
+                pdc.set(PdcKeys.TOOL, PersistentDataType.STRING, toolId());
             });
         }
         itemStack.setAmount(amount * multiplier);

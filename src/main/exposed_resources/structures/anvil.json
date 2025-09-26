@@ -10,7 +10,7 @@
         "size": 1,
         "item-display": "above",
         "transformation": {
-          "right-rotation":"1.570796,1,0,0",
+          "right-rotation": "1.570796,1,0,0",
           "scale": "0.5,0.5,0.5",
           "left-rotation": "2.356194,0,1,0",
           "translation": "0,0.015625,0"
@@ -26,6 +26,14 @@
       "ingredients",
       "target_inventory"
     ],
-    "heat_result": 1200
+    "heat_result": 1200,
+    "tool_input": {
+      "hammer": {
+        "interface-blocks": [
+          "minecraft:anvil"
+        ],
+        "interact-sound": "minecraft:block.anvil.use"
+      }
+    }
   }
 }

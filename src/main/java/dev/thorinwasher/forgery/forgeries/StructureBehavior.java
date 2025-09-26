@@ -4,12 +4,16 @@ import com.google.common.base.Preconditions;
 import dev.thorinwasher.forgery.TimeProvider;
 import dev.thorinwasher.forgery.database.PersistencyAccess;
 import dev.thorinwasher.forgery.forging.ItemAdapter;
+import dev.thorinwasher.forgery.forging.ToolInput;
+import dev.thorinwasher.forgery.forging.ToolInputStoredData;
 import dev.thorinwasher.forgery.inventory.ForgeryInventory;
 import dev.thorinwasher.forgery.inventory.InventoryStoredData;
 import dev.thorinwasher.forgery.recipe.Recipe;
 import dev.thorinwasher.forgery.recipe.RecipeProcedureEvaluator;
 import dev.thorinwasher.forgery.structure.*;
+import dev.thorinwasher.forgery.util.PdcKeys;
 import dev.thorinwasher.forgery.vector.BlockLocation;
+import io.papermc.paper.persistence.PersistentDataContainerView;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -19,6 +23,7 @@ import org.bukkit.event.Event;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,6 +46,7 @@ public class StructureBehavior {
     private Set<String> modifiedInventories = new HashSet<>();
     private Map<String, InventoryDisplay> inventoryDisplays = new HashMap<>();
     private Map<String, List<StructureStateChange>> stateHistory;
+    private List<ToolInput> toolHistory = new ArrayList<>();
     private @Nullable ItemStack recipeOutput = null;
     private long lastEvaluated = -1;
     private static final long EVALUATION_DELAY = 200;
@@ -73,6 +79,9 @@ public class StructureBehavior {
     public InteractionResult interact(Player actor, BlockLocation location, EquipmentSlot hand) {
         Block block = location.toBlock();
         BlockType blockType = block.getType().asBlockType();
+        if (testToolInput(actor, block, blockType, hand)) {
+            return InteractionResult.DENY;
+        }
         String inventoryTypeName = blockTypeInventoryTypeMap.get(blockType);
         if (inventoryTypeName == null) {
             actor.sendMessage(Component.text("Not an inventory accessible block"));
@@ -83,6 +92,28 @@ public class StructureBehavior {
             case INSERTABLE -> accessInsertableInventory(actor, forgeryInventory, hand);
             case OPENABLE -> openInventory(actor, forgeryInventory, hand);
         };
+    }
+
+    private boolean testToolInput(Player actor, Block block, BlockType blockType, EquipmentSlot hand) {
+        ItemStack itemStack = actor.getInventory().getItem(hand);
+        PersistentDataContainerView pdc = itemStack.getPersistentDataContainer();
+        if (!pdc.has(PdcKeys.TOOL, PersistentDataType.STRING)) {
+            return false;
+        }
+        String tool = pdc.get(PdcKeys.TOOL, PersistentDataType.STRING);
+        Map<String, StructureToolInputBehavior> toolInputBehaviors = structure.metaValue(StructureMeta.TOOL_INPUT);
+        if (toolInputBehaviors == null || !toolInputBehaviors.containsKey(tool)) {
+            return false;
+        }
+        StructureToolInputBehavior toolInputBehavior = toolInputBehaviors.get(tool);
+        if (!toolInputBehavior.interfaceBlocks().contains(blockType)) {
+            return false;
+        }
+        block.getWorld().playSound(block.getLocation().toCenterLocation(), toolInputBehavior.interactSound(), 1F, 1F);
+        ToolInput toolInput = new ToolInput(tool, TimeProvider.time());
+        toolHistory.add(toolInput);
+        persistencyAccess.database().insert(persistencyAccess.toolInputStoredData(), new ToolInputStoredData.LinkedToolInput(uuid, toolInput));
+        return true;
     }
 
     private InteractionResult accessInsertableInventory(Player actor, ForgeryInventory forgeryInventory, EquipmentSlot hand) {
@@ -114,6 +145,10 @@ public class StructureBehavior {
                 persistencyAccess.database().remove(
                         persistencyAccess.structureStateStoredData(),
                         new StructureStateStoredData.StructureStateData(this.uuid, null)
+                );
+                persistencyAccess.database().remove(
+                        persistencyAccess.toolInputStoredData(),
+                        new ToolInputStoredData.LinkedToolInput(this.uuid, null)
                 );
                 resetProcessStart();
                 modifiedInventories.add(forgeryInventory.typeName());
@@ -391,6 +426,10 @@ public class StructureBehavior {
                     .map(itemAdapter::toBukkit)
                     .forEach(item -> centered.getWorld().dropItemNaturally(centered, item));
         }
+    }
+
+    public void setToolHistory(List<ToolInput> toolHistory) {
+        this.toolHistory = toolHistory;
     }
 
     public record InteractionResult(Event.Result useBlock, Event.Result useItem) {

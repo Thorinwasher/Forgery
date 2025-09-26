@@ -4,6 +4,7 @@ import dev.thorinwasher.forgery.database.PersistencyAccess;
 import dev.thorinwasher.forgery.database.SqlStatements;
 import dev.thorinwasher.forgery.database.UpdateableStoredData;
 import dev.thorinwasher.forgery.forging.ItemAdapter;
+import dev.thorinwasher.forgery.forging.ToolInputStoredData;
 import dev.thorinwasher.forgery.inventory.InventoryStoredData;
 import dev.thorinwasher.forgery.recipe.Recipe;
 import dev.thorinwasher.forgery.structure.PlacedForgeryStructure;
@@ -64,19 +65,26 @@ public class StructureBehaviorStoredData implements UpdateableStoredData<Structu
                         }, () -> Logger.logWarn("Could not find structure: " + schematic));
             }
         }
-        for (StructureBehavior blastFurnace : output) {
-            blastFurnace.setInventories(persistencyAccess.inventoryStoredData().find(
-                                    new InventoryStoredData.StructureInfo(blastFurnace.uuid(), blastFurnace.placedStructure().structure()), connection
+        for (StructureBehavior behavior : output) {
+            behavior.setInventories(persistencyAccess.inventoryStoredData().find(
+                                    new InventoryStoredData.StructureInfo(behavior.uuid(), behavior.placedStructure().structure()), connection
                             )
                             .stream()
                             .map(InventoryStoredData.InventoryInfo::inventory)
                             .toList()
             );
-            blastFurnace.setStateHistory(
+            behavior.setStateHistory(
                     persistencyAccess.structureStateStoredData()
-                            .find(blastFurnace.uuid(), connection)
+                            .find(behavior.uuid(), connection)
                             .stream()
                             .map(StructureStateStoredData.StructureStateData::stateChange)
+                            .toList()
+            );
+            behavior.setToolHistory(
+                    persistencyAccess.toolInputStoredData()
+                            .find(behavior.uuid(), connection)
+                            .stream()
+                            .map(ToolInputStoredData.LinkedToolInput::toolInput)
                             .toList()
             );
         }

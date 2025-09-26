@@ -1,12 +1,12 @@
 package dev.thorinwasher.forgery.integration.item;
 
 import dev.thorinwasher.forgery.Forgery;
-import dev.thorinwasher.forgery.forging.ItemAdapter;
 import dev.thorinwasher.forgery.integration.ItemIntegration;
 import dev.thorinwasher.forgery.inventory.ForgingMaterial;
 import dev.thorinwasher.forgery.inventory.ForgingMaterialPersistentDataType;
 import dev.thorinwasher.forgery.recipe.ItemReference;
 import dev.thorinwasher.forgery.util.ForgeryKey;
+import dev.thorinwasher.forgery.util.PdcKeys;
 import io.papermc.paper.persistence.PersistentDataContainerView;
 import net.kyori.adventure.key.Key;
 import org.bukkit.NamespacedKey;
@@ -27,11 +27,11 @@ public class ForgeryItemIntegration implements ItemIntegration {
     @Override
     public Optional<ForgingMaterialResult> toForgery(ItemStack itemStack) {
         PersistentDataContainerView view = itemStack.getPersistentDataContainer();
-        if (!view.has(ItemAdapter.FORGING_MATERIAL, ForgingMaterialPersistentDataType.INSTANCE)) {
+        if (!view.has(PdcKeys.FORGING_MATERIAL, ForgingMaterialPersistentDataType.INSTANCE)) {
             return Optional.empty();
         }
 
-        return Optional.ofNullable(view.get(ItemAdapter.FORGING_MATERIAL, ForgingMaterialPersistentDataType.INSTANCE))
+        return Optional.ofNullable(view.get(PdcKeys.FORGING_MATERIAL, ForgingMaterialPersistentDataType.INSTANCE))
                 .map(this::toResult);
     }
 

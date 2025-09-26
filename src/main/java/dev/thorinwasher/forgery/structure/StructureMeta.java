@@ -52,4 +52,9 @@ public record StructureMeta<T>(Key key, TypeToken<T> token) implements Keyed {
             Forgery.key("inventory_transforms"),
             TypeFactory.parameterizedClass(List.class, InventoryTransform.class)
     );
+
+    public static final StructureMeta<Map<String, StructureToolInputBehavior>> TOOL_INPUT = new StructureMeta<>(
+            Forgery.key("tool_input"),
+            TypeFactory.parameterizedClass(Map.class, String.class, StructureToolInputBehavior.class)
+    );
 }

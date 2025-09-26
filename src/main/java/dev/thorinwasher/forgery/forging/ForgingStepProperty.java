@@ -31,9 +31,9 @@ public record ForgingStepProperty<T>(String name, TypeToken<T> typeToken) implem
             "ingredients",
             ForgingIngredients.class
     );
-    public static final ForgingStepProperty<ToolInput> TOOL_INPUT = new ForgingStepProperty<>(
+    public static final ForgingStepProperty<String> TOOL_INPUT = new ForgingStepProperty<>(
             "tool_input",
-            ToolInput.class
+            String.class
     );
     public static final ForgingStepProperty<String> TARGET_INVENTORY = new ForgingStepProperty<>(
             "target_inventory",

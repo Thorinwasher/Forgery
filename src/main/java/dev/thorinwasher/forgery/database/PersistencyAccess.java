@@ -3,6 +3,7 @@ package dev.thorinwasher.forgery.database;
 import dev.thorinwasher.forgery.forgeries.StructureBehaviorStoredData;
 import dev.thorinwasher.forgery.forgeries.StructureStateStoredData;
 import dev.thorinwasher.forgery.forging.ItemAdapter;
+import dev.thorinwasher.forgery.forging.ToolInputStoredData;
 import dev.thorinwasher.forgery.inventory.InventoryContentStoredData;
 import dev.thorinwasher.forgery.inventory.InventoryStoredData;
 import dev.thorinwasher.forgery.recipe.ItemStoredData;
@@ -10,7 +11,6 @@ import dev.thorinwasher.forgery.recipe.Recipe;
 import dev.thorinwasher.forgery.structure.StructureRegistry;
 
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public final class PersistencyAccess {
@@ -23,6 +23,7 @@ public final class PersistencyAccess {
     private InventoryContentStoredData inventoryContentStoredData;
     private StructureStateStoredData structureStateStoredData;
     private ItemStoredData itemStoredData;
+    private ToolInputStoredData toolInputStoredData;
 
     public PersistencyAccess(Database database, StructureRegistry structureRegistry, ItemAdapter itemAdapter, Supplier<Map<String, Recipe>> recipes) {
         this.database = database;
@@ -36,6 +37,7 @@ public final class PersistencyAccess {
         this.inventoryStoredData = new InventoryStoredData(this, itemAdapter);
         this.structureStateStoredData = new StructureStateStoredData();
         this.itemStoredData = new ItemStoredData();
+        this.toolInputStoredData = new ToolInputStoredData();
     }
 
     public Database database() {
@@ -63,6 +65,10 @@ public final class PersistencyAccess {
 
     public ItemStoredData itemStoredData() {
         return itemStoredData;
+    }
+
+    public ToolInputStoredData toolInputStoredData() {
+        return toolInputStoredData;
     }
 
 }
