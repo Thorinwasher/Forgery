@@ -1,6 +1,7 @@
 package dev.thorinwasher.forgery.forging;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Supplier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -20,6 +21,16 @@ public record ForgingStep(Map<ForgingStepProperty<?>, Object> properties) {
         if (t == null) {
             t = defaultValue;
         }
+        return t;
+    }
+
+    public <T> @NotNull T getOrDefault(ForgingStepProperty<T> property, @NotNull Supplier<T> defaultValue) {
+        Preconditions.checkNotNull(defaultValue);
+        T t = (T) properties.get(property);
+        if (t == null) {
+            t = defaultValue.get();
+        }
+        Preconditions.checkNotNull(t);
         return t;
     }
 }

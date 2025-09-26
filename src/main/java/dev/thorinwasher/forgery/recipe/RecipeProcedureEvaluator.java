@@ -24,7 +24,7 @@ public class RecipeProcedureEvaluator {
         List<Pair<Pair<Recipe, Integer>, Double>> evaluated = recipes.stream()
                 .filter(recipe -> structureType.equals(recipe.structureType()))
                 .map(recipe -> new Pair<>(recipe, evaluateRecipe(change, itemInput, recipe, processStart, toolHistory)))
-                .filter(pair -> pair.second().first().get("state_changes") >= 0.3)
+                .filter(RecipeProcedureEvaluator::recipeApplicable)
                 .map(pair ->
                         new Pair<>(new Pair<>(pair.first(), pair.second().second()), pair.second().first().values().stream().reduce(1D, ((aDouble, aDouble2) -> aDouble * aDouble2)))
                 )
@@ -43,6 +43,13 @@ public class RecipeProcedureEvaluator {
                 winner.first().second()
         );
         return Optional.of(itemStack);
+    }
+
+    private static boolean recipeApplicable(Pair<Recipe, Pair<Map<String, Double>, Integer>> recipePairPair) {
+        Map<String, Double> scores = recipePairPair.second().first();
+        return scores.values().stream().anyMatch(
+                value -> value > 0.3
+        );
     }
 
     private static Pair<Map<String, Double>, Integer> evaluateRecipe(Map<String, List<StructureStateChange>> change, List<ForgingItem> itemInput,
@@ -76,18 +83,24 @@ public class RecipeProcedureEvaluator {
         } else {
             toolScore = expectedToolHistory.isEmpty() ? 1D : 0D;
         }
-        return new Pair<>(Map.of(
-                "ingredients", ingredientScore.first(),
-                "state_changes", structureChangeScore,
-                "tool", toolScore
-        ), ingredientScore.second());
+        Map<String, Double> scores = new HashMap<>();
+        if (!ingredients.isEmpty()) {
+            scores.put("ingredients", ingredientScore.first());
+        }
+        if (!toolHistory.isEmpty()) {
+            scores.put("tool", toolScore);
+        }
+        if (structureChangeScore != -1D) {
+            scores.put("state_changes", structureChangeScore);
+        }
+        return new Pair<>(scores, ingredientScore.second());
     }
 
     private static double evaluateToolHistory(List<ToolInput> expectedToolHistory, List<ToolInput> toolHistory, long processStart) {
         if (expectedToolHistory.isEmpty()) {
             return toolHistory.isEmpty() ? 1D : 0D; //TODO: Is this too strict?
         }
-        double wrongInputScoreDecrement = Math.min(1D, 3D / expectedToolHistory.size());
+        double wrongInputScoreDecrement = Math.sqrt(Math.min(1D, 1D / expectedToolHistory.size()));
         int actualIndex = -1;
         double score = 1D;
         long previous = processStart;
@@ -174,6 +187,7 @@ public class RecipeProcedureEvaluator {
         long timePoint = processStart;
         for (ForgingStep step : recipe.steps().steps()) {
             if (!step.properties().containsKey(ForgingStepProperty.IS_STATE) && !step.properties().containsKey(ForgingStepProperty.NOT_STATE)) {
+                timePoint += step.getOrDefault(ForgingStepProperty.PROCESS_TIME, new Duration(0L)).duration();
                 continue;
             }
             long duration = step.getOrDefault(ForgingStepProperty.PROCESS_TIME, new Duration(1L)).duration();
@@ -198,7 +212,7 @@ public class RecipeProcedureEvaluator {
             timePoint += duration;
         }
         if (expectedChanges.isEmpty()) {
-            return 1D;
+            return -1D;
         }
         double precisionScore = 1D;
         for (String state : expectedChanges.keySet()) {
@@ -215,15 +229,15 @@ public class RecipeProcedureEvaluator {
         long stateProcessStart = -1;
         long stateTimeOffset = 0;
         for (ForgingStep forgingStep : recipe.steps().steps()) {
-            if (forgingStep.properties().containsKey(ForgingStepProperty.PROCESS_TIME)) {
-                stateTimeOffset -= forgingStep.getOrThrow(ForgingStepProperty.PROCESS_TIME).duration();
-            }
             if (!forgingStep.properties().containsKey(ForgingStepProperty.IS_STATE) && !forgingStep.properties().containsKey(ForgingStepProperty.NOT_STATE)) {
+                if (forgingStep.properties().containsKey(ForgingStepProperty.PROCESS_TIME)) {
+                    stateTimeOffset -= forgingStep.getOrThrow(ForgingStepProperty.PROCESS_TIME).duration();
+                }
                 continue;
             }
-            String state = forgingStep.getOrDefault(
+            String state = forgingStep.<String>getOrDefault(
                     ForgingStepProperty.IS_STATE,
-                    forgingStep.getOrThrow(ForgingStepProperty.NOT_STATE)
+                    () -> forgingStep.getOrThrow(ForgingStepProperty.NOT_STATE)
             );
             stateProcessStart = calculateStateProcessStart(stateChanges, defaultValue, state, forgingStep.properties().containsKey(ForgingStepProperty.IS_STATE)) + stateTimeOffset;
             break;

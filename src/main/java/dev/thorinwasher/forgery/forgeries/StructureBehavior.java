@@ -143,6 +143,7 @@ public class StructureBehavior {
                 }
                 recipeOutput = null;
                 stateHistory.clear();
+                toolHistory.clear();
                 persistencyAccess.database().remove(
                         persistencyAccess.structureStateStoredData(),
                         new StructureStateStoredData.StructureStateData(this.uuid, null)
