@@ -65,6 +65,14 @@
       "ingredients",
       "target_inventory"
     ],
-    "heat_result": 1200
+    "heat_result": 1200,
+    "tool_input": {
+      "bellows": {
+        "interface-blocks": [
+          "minecraft:fire_place"
+        ],
+        "interact-sound": "entity.wind_charge.wind_burst"
+      }
+    }
   }
 }

@@ -46,8 +46,13 @@ iron:
     - target_inventory: smelter
       ingredients:
         forgery:pig_iron: 1
-    - process_time: 5min
+    - process_time: 2min
       is_state: has_fuel
+      tool_input:
+        - bellows
+      repeat: 2
+    - process_time: 3min
+      not_state: has_fuel
   result:
     material: iron_ingot
 iron_sword:
@@ -56,9 +61,12 @@ iron_sword:
     - target_inventory: anvil
       ingredients:
         iron_ingot: 1
-    - tool_input: hammer
-    - tool_input: pliers
-    - tool_input: pliers
-    - tool_input: hammer
+    - tool_input:
+        - hammer
+    - tool_input:
+        - pliers
+        - pliers
+        - hammer
+      repeat: 2
   result:
     material: iron_sword

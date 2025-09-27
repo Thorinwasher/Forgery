@@ -23,17 +23,13 @@ public record ForgingStepProperty<T>(String name, TypeToken<T> typeToken) implem
             "process_time",
             Duration.class
     );
-    public static final ForgingStepProperty<Integer> PROCESS_AMOUNT = new ForgingStepProperty<>(
-            "repeat",
-            Integer.class
-    );
     public static final ForgingStepProperty<ForgingIngredients> INPUT_CONTENT = new ForgingStepProperty<>(
             "ingredients",
             ForgingIngredients.class
     );
-    public static final ForgingStepProperty<String> TOOL_INPUT = new ForgingStepProperty<>(
+    public static final ForgingStepProperty<List<String>> TOOL_INPUT = new ForgingStepProperty<>(
             "tool_input",
-            String.class
+            TypeFactory.parameterizedClass(List.class, String.class)
     );
     public static final ForgingStepProperty<String> TARGET_INVENTORY = new ForgingStepProperty<>(
             "target_inventory",
@@ -46,6 +42,10 @@ public record ForgingStepProperty<T>(String name, TypeToken<T> typeToken) implem
     public static final ForgingStepProperty<String> NOT_STATE = new ForgingStepProperty<>(
             "not_state",
             String.class
+    );
+    public static final ForgingStepProperty<Integer> REPEAT = new ForgingStepProperty<>(
+            "repeat",
+            Integer.class
     );
 
     public ForgingStepProperty(String allowedStructureTypes, Type type) {

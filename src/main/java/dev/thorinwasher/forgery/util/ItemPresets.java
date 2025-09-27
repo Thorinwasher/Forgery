@@ -7,6 +7,7 @@ import io.papermc.paper.datacomponent.item.ItemAttributeModifiers;
 import io.papermc.paper.datacomponent.item.Tool;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -20,6 +21,7 @@ public class ItemPresets {
         saveItemReferenceIfNotExists(new ItemReference("pig_iron_nugget", pigIronNugget()), itemReferences, access);
         saveItemReferenceIfNotExists(new ItemReference("hammer", hammer()), itemReferences, access);
         saveItemReferenceIfNotExists(new ItemReference("pliers", pliers()), itemReferences, access);
+        saveItemReferenceIfNotExists(new ItemReference("bellows", bellows()), itemReferences, access);
     }
 
     private static ItemStack hammer() {
@@ -28,7 +30,8 @@ public class ItemPresets {
         hammer.setData(DataComponentTypes.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.itemAttributes()
                 .build());
         hammer.setData(DataComponentTypes.CUSTOM_NAME, Component.text("Hammer")
-                .decoration(TextDecoration.ITALIC, false));
+                .decoration(TextDecoration.ITALIC, false)
+                .color(NamedTextColor.WHITE));
         return hammer;
     }
 
@@ -60,5 +63,12 @@ public class ItemPresets {
                 .decoration(TextDecoration.ITALIC, false));
         pliers.setData(DataComponentTypes.TOOL, Tool.tool().build());
         return pliers;
+    }
+
+    private static ItemStack bellows() {
+        ItemStack bellows = new ItemStack(Material.DRIED_KELP);
+        bellows.setData(DataComponentTypes.CUSTOM_NAME, Component.text("Bellows")
+                .decoration(TextDecoration.ITALIC, false));
+        return bellows;
     }
 }

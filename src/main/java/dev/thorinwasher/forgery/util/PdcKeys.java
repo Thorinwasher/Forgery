@@ -7,6 +7,8 @@ public class PdcKeys {
 
 
     public static final NamespacedKey TOOL = Forgery.key("tool");
-    public static final NamespacedKey FORGING_STEPS = new NamespacedKey(Forgery.NAMESPACE, "forging_steps");
-    public static final NamespacedKey FORGING_MATERIAL = new NamespacedKey(Forgery.NAMESPACE, "material");
+    public static final NamespacedKey FORGING_STEPS = Forgery.key("forging_steps");
+    public static final NamespacedKey FORGING_MATERIAL = Forgery.key("material");
+    public static final NamespacedKey SCORE = Forgery.key("score");
+
 }

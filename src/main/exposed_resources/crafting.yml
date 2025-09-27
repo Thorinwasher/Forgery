@@ -19,3 +19,14 @@ pliers:
   result:
     material: forgery:pliers
     tool-id: pliers
+bellows:
+  shape: |
+    sls
+    sls
+     s
+  materials:
+    s: stick
+    l: leather
+  result:
+    material: forgery:bellows
+    tool-id: bellows

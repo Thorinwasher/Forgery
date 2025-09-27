@@ -12,6 +12,7 @@ import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -44,7 +45,14 @@ public record CraftingRecipe(RecipeResult result, Shape shape) {
         @Override
         public ShapedRecipe compile(ItemAdapter itemAdapter, String key, ItemStack result) {
             ShapedRecipe recipe = new ShapedRecipe(Forgery.key(key), result);
-            recipe.shape(shape().split("\n"));
+            int max = Arrays.stream(shape.split("\n"))
+                    .map(String::length)
+                    .max(Integer::compareTo)
+                    .orElse(0);
+            String[] lines = Arrays.stream(shape().split("\n"))
+                    .map(line -> line + " ".repeat(max - line.length()))
+                    .toArray(String[]::new);
+            recipe.shape(lines);
             for (Map.Entry<Character, ForgeryKey> entry : materials.entrySet()) {
                 recipe.setIngredient(entry.getKey(), compileExact(entry.getValue(), itemAdapter));
             }
