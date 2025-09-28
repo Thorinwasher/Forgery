@@ -3,7 +3,7 @@ hammer:
     a
     e
   materials:
-    a: forgery:pig_iron
+    a: iron_ingot
     e: stick
   result:
     material: forgery:hammer
@@ -14,7 +14,7 @@ pliers:
      a 
     e e
   materials:
-    a: forgery:pig_iron
+    a: iron_ingot
     e: stick
   result:
     material: forgery:pliers

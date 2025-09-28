@@ -12,10 +12,7 @@ import dev.thorinwasher.forgery.listener.BlockEventListener;
 import dev.thorinwasher.forgery.listener.CraftingListener;
 import dev.thorinwasher.forgery.listener.PlayerEventListener;
 import dev.thorinwasher.forgery.listener.WorldEventListener;
-import dev.thorinwasher.forgery.recipe.CraftingRecipe;
-import dev.thorinwasher.forgery.recipe.ItemReference;
-import dev.thorinwasher.forgery.recipe.Recipe;
-import dev.thorinwasher.forgery.recipe.RecipeResult;
+import dev.thorinwasher.forgery.recipe.*;
 import dev.thorinwasher.forgery.serialize.RecipeResultSerializer;
 import dev.thorinwasher.forgery.serialize.Serialize;
 import dev.thorinwasher.forgery.structure.*;
@@ -27,6 +24,7 @@ import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.ServicePriority;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.spongepowered.configurate.ConfigurateException;
@@ -83,6 +81,7 @@ public class Forgery extends JavaPlugin {
         loadStructures();
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, new ForgeryCommand(itemReferences, persistencyAccess)::register);
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(this, this::tickStructures, 1, 1);
+        Bukkit.getGlobalRegionScheduler().runAtFixedRate(this, this::tickPlayers, 1, 200);
         this.recipes = loadRecipes();
         Preconditions.checkState(recipes != null, "Could not deserialize recipes section");
         Bukkit.getWorlds()
@@ -167,6 +166,12 @@ public class Forgery extends JavaPlugin {
         placedStructureRegistry.getAllStream()
                 .map(PlacedForgeryStructure::behavior)
                 .forEach(StructureBehavior::tickStructure);
+    }
+
+    private void tickPlayers(ScheduledTask task) {
+        Bukkit.getOnlinePlayers().stream()
+                .map(Player::getInventory)
+                .forEach(HeatBehavior::updateInventory);
     }
 
     private Map<String, Recipe> loadRecipes() {

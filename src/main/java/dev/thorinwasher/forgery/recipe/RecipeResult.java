@@ -17,7 +17,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public record RecipeResult(ForgeryKey key, int amount, boolean overrideLore, List<Component> lore,
-                           @Nullable Component name, @Nullable String toolId) {
+                           @Nullable Component name, @Nullable String toolId, HeatBehavior heatBehavior,
+                           @Nullable Double temperature) {
 
 
     public ItemStack get(int score, IntegrationRegistry registry) {
@@ -45,6 +46,9 @@ public record RecipeResult(ForgeryKey key, int amount, boolean overrideLore, Lis
             itemStack.editPersistentDataContainer(pdc -> {
                 pdc.set(PdcKeys.TOOL, PersistentDataType.STRING, toolId());
             });
+        }
+        if (temperature() != null && heatBehavior() != null) {
+            heatBehavior().applyTo(itemStack, temperature());
         }
         itemStack.setAmount(amount * multiplier);
         return itemStack;

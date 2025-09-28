@@ -1,6 +1,7 @@
 package dev.thorinwasher.forgery.serialize;
 
 import com.google.common.base.Preconditions;
+import dev.thorinwasher.forgery.recipe.HeatBehavior;
 import dev.thorinwasher.forgery.recipe.RecipeResult;
 import dev.thorinwasher.forgery.util.ForgeryKey;
 import net.kyori.adventure.text.Component;
@@ -24,13 +25,17 @@ public record RecipeResultSerializer() implements TypeSerializer<RecipeResult> {
         Component name = node.node("name").get(Component.class);
         List<Component> lore = node.node("lore").getList(Component.class);
         String toolId = node.node("tool-id").getString();
+        HeatBehavior heatBehavior = node.node("heat-behavior").get(HeatBehavior.class);
+        Double temperature = node.node("temperature").get(Double.class);
         return new RecipeResult(
                 ForgeryKey.defaultNamespace("minecraft", node.node("material").getString()),
                 amount,
                 overrideLore,
                 lore,
                 name,
-                toolId
+                toolId,
+                heatBehavior,
+                temperature
         );
     }
 
@@ -52,6 +57,12 @@ public record RecipeResultSerializer() implements TypeSerializer<RecipeResult> {
         }
         if (obj.toolId() != null) {
             node.node("tool-id").set(obj.toolId());
+        }
+        if (obj.heatBehavior() != null) {
+            node.node("heat-behavior").set(obj.heatBehavior());
+        }
+        if (obj.temperature() != null) {
+            node.node("temperature").set(obj.temperature());
         }
     }
 }
