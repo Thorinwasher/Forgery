@@ -37,11 +37,18 @@ public class RecipeProcedureEvaluator {
         if (winner.second() < 0.3) {
             return Optional.of(ItemAdapter.failedItem());
         }
-        ItemStack itemStack = winner.first().first().result().get(
+        RecipeResult result = winner.first().first().result();
+        ItemStack itemStack = result.get(
                 (int) Math.ceil(winner.second() * 10D),
                 adapter.registry(),
                 winner.first().second()
         );
+        if (result.temperature() == null && result.heatBehavior() != null) {
+            result.heatBehavior().applyTo(itemStack, itemInput.stream()
+                    .map(ForgingItem::calculatedTemperature)
+                    .reduce(0D, Double::sum) / itemInput.size()
+            );
+        }
         return Optional.of(itemStack);
     }
 

@@ -15,8 +15,8 @@ import java.util.Optional;
 
 public enum HeatBehavior {
 
-    IRON(1538D, 20, 0xFFFFFF),
-    COPPER(1357D, 20, 0xCE702B);
+    IRON(1538D, 5, 0xFFFFFF),
+    COPPER(1357D, 5, 0xCE702B);
 
     private final double meltingPoint;
     private final int decrementTime;
@@ -93,7 +93,6 @@ public enum HeatBehavior {
     }
 
     public static void updateInventory(Inventory inventory) {
-        boolean modified = false;
         for (ItemStack itemStack : inventory) {
             if (itemStack == null) {
                 continue;
@@ -110,15 +109,6 @@ public enum HeatBehavior {
                 double newTemperature = Math.max(25D, temperature - (double) (TimeProvider.time() - timestamp) / heatBehavior.decrementTime);
                 heatBehavior.applyTo(itemStack, newTemperature);
             });
-            modified |= heatOptional.isPresent() && temperature != null && temperature != 25D;
-        }
-        if (modified) {
-            /*
-             inventory.getViewers().stream()
-             .filter(Player.class::isInstance)
-             .map(Player.class::cast)
-             .forEach(Player::updateInventory);
-             */
         }
     }
 }

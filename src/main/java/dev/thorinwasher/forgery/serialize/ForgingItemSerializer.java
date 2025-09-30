@@ -1,5 +1,6 @@
 package dev.thorinwasher.forgery.serialize;
 
+import dev.thorinwasher.forgery.TimeProvider;
 import dev.thorinwasher.forgery.forging.ForgingSteps;
 import dev.thorinwasher.forgery.inventory.ForgingItem;
 import dev.thorinwasher.forgery.inventory.ForgingMaterial;
@@ -21,7 +22,14 @@ public class ForgingItemSerializer implements TypeSerializer<ForgingItem> {
         if (forgingSteps == null && material == null) {
             return null;
         }
-        return new ForgingItem(material, forgingSteps == null ? new ForgingSteps(List.of()) : forgingSteps);
+        Double temperature = node.node("temperature").get(Double.class);
+        Long timestamp = node.node("timestamp").get(Long.class);
+        return new ForgingItem(
+                material,
+                forgingSteps == null ? new ForgingSteps(List.of()) : forgingSteps,
+                temperature == null ? 25D : temperature,
+                timestamp == null ? TimeProvider.time() : timestamp
+        );
     }
 
     @Override
@@ -35,5 +43,9 @@ public class ForgingItemSerializer implements TypeSerializer<ForgingItem> {
         if (obj.material() != null) {
             node.node("material").set(obj.material());
         }
+        if (obj.temperature() != 25D) {
+            node.node("temperature").set(obj.temperature());
+        }
+        node.node("timestamp").set(obj.temperatureTimeStamp());
     }
 }
