@@ -4,7 +4,9 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import dev.thorinwasher.forgery.database.PersistencyAccess;
+import dev.thorinwasher.forgery.integration.IntegrationRegistry;
 import dev.thorinwasher.forgery.recipe.ItemReference;
+import dev.thorinwasher.forgery.recipe.Recipe;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import io.papermc.paper.command.brigadier.MessageComponentSerializer;
@@ -16,7 +18,8 @@ import org.bukkit.entity.Player;
 
 import java.util.Map;
 
-public record ForgeryCommand(Map<Key, ItemReference> itemReferences, PersistencyAccess persistencyAccess) {
+public record ForgeryCommand(Map<Key, ItemReference> itemReferences, PersistencyAccess persistencyAccess,
+                             Map<String, Recipe> recipes, IntegrationRegistry integrationRegistry) {
 
     private static final SimpleCommandExceptionType UNDEFINED_PLAYER = new SimpleCommandExceptionType(
             MessageComponentSerializer.message().serialize(Component.text("Expected a defined player"))
@@ -25,6 +28,7 @@ public record ForgeryCommand(Map<Key, ItemReference> itemReferences, Persistency
     public void register(ReloadableRegistrarEvent<Commands> commands) {
         commands.registrar().register(Commands.literal("forgery")
                 .then(new ItemCommand(itemReferences, persistencyAccess).builder())
+                .then(new RecipeCommand(recipes, integrationRegistry).builder())
                 .build()
         );
     }

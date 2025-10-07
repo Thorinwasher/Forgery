@@ -72,6 +72,23 @@ public record ItemCommand(Map<Key, ItemReference> itemReferences, PersistencyAcc
                                 })
                         )
                 )
+                .then(Commands.literal("get")
+                        .then(Commands.argument("item-name", StringArgumentType.word())
+                                .executes(context -> {
+                                    String itemName = context.getArgument("item-name", String.class);
+                                    if (!Key.parseableValue(itemName)) {
+                                        throw NOT_VALID_KEY.create(itemName);
+                                    }
+                                    NamespacedKey key = Forgery.key(itemName);
+                                    if (itemReferences.containsKey(key)) {
+                                        ItemStack itemStack = itemReferences.get(key).write(10);
+                                        CommandUtil.giveItem(context.getSource(), itemStack);
+                                    } else {
+                                        context.getSource().getSender().sendMessage(Component.text("Could not find item reference " + itemName).color(NamedTextColor.RED));
+                                    }
+                                    return 1;
+                                }))
+                )
                 .requires(commandSourceStack -> commandSourceStack.getSender().hasPermission("forgery.command.item"));
     }
 }

@@ -54,9 +54,13 @@ public class RecipeProcedureEvaluator {
 
     private static boolean recipeApplicable(Pair<Recipe, Pair<Map<String, Double>, Integer>> recipePairPair) {
         Map<String, Double> scores = recipePairPair.second().first();
-        return scores.values().stream().anyMatch(
-                value -> value > 0.3
-        );
+        Set<String> ignored = Set.of("heat", "ingredients");
+        return scores.entrySet().stream()
+                .filter(entry -> !ignored.contains(entry.getKey()))
+                .map(Map.Entry::getValue)
+                .anyMatch(
+                        value -> value > 0.3
+                );
     }
 
     private static Pair<Map<String, Double>, Integer> evaluateRecipe(Map<String, List<StructureStateChange>> change, List<ForgingItem> itemInput,
@@ -100,6 +104,11 @@ public class RecipeProcedureEvaluator {
         }
         if (structureChangeScore != -1D) {
             scores.put("state_changes", structureChangeScore);
+        }
+        if (recipe.minimalHeat() != null) {
+            scores.put("heat", recipe.minimalHeat() > itemInput.stream()
+                    .map(ForgingItem::calculatedTemperature)
+                    .reduce(0D, Double::sum) / itemInput.size() ? 0D : 1D);
         }
         return new Pair<>(scores, ingredientScore.second());
     }

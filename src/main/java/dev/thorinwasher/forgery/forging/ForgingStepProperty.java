@@ -15,10 +15,6 @@ import java.util.List;
 
 public record ForgingStepProperty<T>(String name, TypeToken<T> typeToken) implements Keyed {
 
-    public static final ForgingStepProperty<List<String>> ALLOWED_STRUCTURE_TYPES = new ForgingStepProperty<>(
-            "allowed_structure_types",
-            TypeFactory.parameterizedClass(List.class, String.class)
-    );
     public static final ForgingStepProperty<Duration> PROCESS_TIME = new ForgingStepProperty<>(
             "process_time",
             Duration.class

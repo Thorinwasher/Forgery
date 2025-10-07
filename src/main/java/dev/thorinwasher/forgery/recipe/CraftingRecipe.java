@@ -1,7 +1,6 @@
 package dev.thorinwasher.forgery.recipe;
 
 import dev.thorinwasher.forgery.Forgery;
-import dev.thorinwasher.forgery.TimeProvider;
 import dev.thorinwasher.forgery.forging.ForgingSteps;
 import dev.thorinwasher.forgery.forging.ItemAdapter;
 import dev.thorinwasher.forgery.inventory.ForgingItem;
@@ -36,8 +35,7 @@ public record CraftingRecipe(RecipeResult result, Shape shape) {
             itemStacks.add(itemAdapter.toBukkit(new ForgingItem(
                             new ForgingMaterial(key, score),
                             new ForgingSteps(List.of()),
-                            25D,
-                            TimeProvider.time()
+                            null
                     )
             ));
         }

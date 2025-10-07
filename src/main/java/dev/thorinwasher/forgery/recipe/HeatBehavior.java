@@ -106,9 +106,13 @@ public enum HeatBehavior {
                     heatBehavior.applyTo(itemStack);
                     return;
                 }
-                double newTemperature = Math.max(25D, temperature - (double) (TimeProvider.time() - timestamp) / heatBehavior.decrementTime);
+                double newTemperature = heatBehavior.computeNewTemperature(temperature, timestamp);
                 heatBehavior.applyTo(itemStack, newTemperature);
             });
         }
+    }
+
+    public double computeNewTemperature(double previousTemperature, long timestamp) {
+        return Math.max(25D, previousTemperature - (double) (TimeProvider.time() - timestamp) / decrementTime);
     }
 }

@@ -8,8 +8,8 @@ import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +31,7 @@ public final class InventoryDisplay {
     }
 
 
-    public void display(ItemAdapter itemAdapter) {
+    public void display(@NotNull ItemAdapter itemAdapter, @Nullable ItemStack override) {
         if (locations.isEmpty()) {
             return;
         }
@@ -40,7 +40,16 @@ public final class InventoryDisplay {
                 .stream()
                 .map(ForgeryInventory.ItemRecord::forgeryItem)
                 .toList();
-        int inventoryContents = items.size();
+        int inventoryContents;
+        final ItemStack displayOverride;
+        if (override != null) {
+            displayOverride = override.clone();
+            inventoryContents = override.getAmount();
+            displayOverride.setAmount(1);
+        } else {
+            inventoryContents = items.size();
+            displayOverride = null;
+        }
         int base = inventoryContents / locations.size();
         int extra = inventoryContents % locations.size();
         int i = 0;
@@ -57,7 +66,7 @@ public final class InventoryDisplay {
                     .toList();
             for (Location displayLocation : displayLocations) {
                 ForgingItem item = items.get(i++);
-                ItemStack bukkit = itemAdapter.toBukkit(item);
+                ItemStack bukkit = displayOverride == null ? itemAdapter.toBukkit(item) : displayOverride;
                 ItemDisplay itemDisplay = displayLocation.getWorld().spawn(displayLocation, ItemDisplay.class, display -> {
                     display.setPersistent(false);
                     display.setItemStack(bukkit);

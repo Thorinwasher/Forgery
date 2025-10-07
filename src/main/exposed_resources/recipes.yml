@@ -13,6 +13,7 @@ pig_iron_1:
     material: forgery:pig_iron
     amount: 2
     heat-behavior: iron
+    temperature: 1200
 pig_iron_2:
   structure-type: blast_furnace
   steps:
@@ -28,6 +29,7 @@ pig_iron_2:
     material: forgery:pig_iron
     amount: 2
     heat-behavior: iron
+    temperature: 1200
 glass:
   structure-type: smelter
   steps:
@@ -58,8 +60,10 @@ iron:
   result:
     material: iron_ingot
     heat-behavior: iron
-iron_sword_blade:
+    temperature: 1500
+iron_sword:
   structure-type: anvil
+  minimal-heat: 1000
   steps:
     - target_inventory: anvil
       ingredients:

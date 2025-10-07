@@ -79,7 +79,6 @@ public class Forgery extends JavaPlugin {
         ItemPresets.saveAllIfNotExists(itemReferences, persistencyAccess);
         integrationRegistry.initialize(itemReferences);
         loadStructures();
-        this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, new ForgeryCommand(itemReferences, persistencyAccess)::register);
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(this, this::tickStructures, 1, 1);
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(this, this::tickPlayers, 1, 200);
         this.recipes = loadRecipes();
@@ -100,6 +99,7 @@ public class Forgery extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new WorldEventListener(persistencyAccess, placedStructureRegistry), this);
         Bukkit.getPluginManager().registerEvents(new CraftingListener(itemAdapter), this);
         loadAndRegisterCraftingRecipes(itemAdapter);
+        this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, new ForgeryCommand(itemReferences, persistencyAccess, recipes, integrationRegistry)::register);
     }
 
     private void loadStructures() {

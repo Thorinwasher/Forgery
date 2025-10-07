@@ -5,5 +5,6 @@ import dev.thorinwasher.forgery.util.ForgeryKey;
 import org.spongepowered.configurate.objectmapping.ConfigSerializable;
 
 @ConfigSerializable
-public record Recipe(ForgingSteps steps, RecipeResult result, String structureType, ForgeryKey key) {
+public record Recipe(ForgingSteps steps, RecipeResult result, String structureType, ForgeryKey key,
+                     Double minimalHeat) {
 }

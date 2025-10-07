@@ -80,6 +80,7 @@ public class StructureBehavior {
         Block block = location.toBlock();
         BlockType blockType = block.getType().asBlockType();
         if (testToolInput(actor, block, blockType, hand)) {
+            updateRecipeOutput();
             return InteractionResult.DENY;
         }
         String inventoryTypeName = blockTypeInventoryTypeMap.get(blockType);
@@ -92,6 +93,37 @@ public class StructureBehavior {
             case INSERTABLE -> accessInsertableInventory(actor, forgeryInventory, hand);
             case OPENABLE -> openInventory(actor, forgeryInventory, hand);
         };
+    }
+
+    private void updateRecipeOutput() {
+        String outputInventory = structure.metaValue(StructureMeta.OUTPUT_INVENTORY);
+        if (outputInventory == null) {
+            return;
+        }
+        ForgeryInventory inventory = inventory(outputInventory);
+        if (inventory.items().isEmpty()) {
+            return;
+        }
+        recipeOutput = RecipeProcedureEvaluator.findRecipeResult(
+                stateHistory,
+                inventory.items().stream()
+                        .map(ForgeryInventory.ItemRecord::forgeryItem)
+                        .toList(),
+                processStart,
+                recipes.values(),
+                itemAdapter,
+                structure.structure().getName(),
+                toolHistory
+        ).orElse(null);
+        lastEvaluated = TimeProvider.time();
+
+        String targetInventory = structure.metaValue(StructureMeta.OUTPUT_INVENTORY);
+        if (recipeOutput != null && targetInventory != null) {
+            InventoryDisplay display = inventoryDisplays.get(targetInventory);
+            if (display != null) {
+                display.display(itemAdapter, recipeOutput);
+            }
+        }
     }
 
     private boolean testToolInput(Player actor, Block block, BlockType blockType, EquipmentSlot hand) {
@@ -121,20 +153,8 @@ public class StructureBehavior {
             if (hand == EquipmentSlot.OFF_HAND) {
                 return InteractionResult.DENY;
             }
-            if (lastEvaluated + EVALUATION_DELAY < TimeProvider.time()
-                    && forgeryInventory.typeName().equalsIgnoreCase(structure.metaValue(StructureMeta.OUTPUT_INVENTORY))
-                    && !forgeryInventory.items().isEmpty()) {
-                recipeOutput = RecipeProcedureEvaluator.findRecipeResult(
-                        stateHistory,
-                        forgeryInventory.items().stream()
-                                .map(ForgeryInventory.ItemRecord::forgeryItem)
-                                .toList(),
-                        processStart,
-                        recipes.values(),
-                        itemAdapter,
-                        structure.structure().getName(),
-                        toolHistory
-                ).orElse(null);
+            if (lastEvaluated + EVALUATION_DELAY < TimeProvider.time()) {
+                updateRecipeOutput();
             }
             if (recipeOutput != null && forgeryInventory.typeName().equalsIgnoreCase(structure.metaValue(StructureMeta.OUTPUT_INVENTORY))) {
                 inventories.values().forEach(ForgeryInventory::clear);
@@ -168,6 +188,7 @@ public class StructureBehavior {
             if (forgeryInventory.items().isEmpty() && forgeryInventory.typeName().equalsIgnoreCase(structure.metaValue(StructureMeta.OUTPUT_INVENTORY))) {
                 resetProcessStart();
             }
+            updateRecipeOutput();
             return InteractionResult.DENY;
         }
         PlayerInventory inventory = actor.getInventory();
@@ -190,6 +211,7 @@ public class StructureBehavior {
                     forgeryInventory.addItem(item);
                     itemStack.setAmount(itemStack.getAmount() - 1);
                     modifiedInventories.add(forgeryInventory.typeName());
+                    updateRecipeOutput();
                 });
         return InteractionResult.DENY;
     }
@@ -313,11 +335,9 @@ public class StructureBehavior {
                 continue;
             }
             if (!modifiedInventories.contains(inventory.typeName())) {
-                if (inventoryDisplays.containsKey(inventory.typeName())) {
-                    InventoryDisplay display = inventoryDisplays.get(inventory.typeName());
-                    if (display.needsRefresh()) {
-                        display.display(itemAdapter);
-                    }
+                InventoryDisplay display = inventoryDisplays.get(inventory.typeName());
+                if (display != null && display.needsRefresh()) {
+                    display.display(itemAdapter, recipeOutput);
                 }
                 continue;
             }
@@ -344,7 +364,7 @@ public class StructureBehavior {
                 );
                 inventoryDisplays.put(inventory.typeName(), display);
             }
-            display.display(itemAdapter);
+            display.display(itemAdapter, inventory.typeName().equalsIgnoreCase(structure.metaValue(StructureMeta.OUTPUT_INVENTORY)) ? recipeOutput : null);
         }
     }
 

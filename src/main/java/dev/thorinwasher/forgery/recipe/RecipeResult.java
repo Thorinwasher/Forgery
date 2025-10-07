@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public record RecipeResult(ForgeryKey key, int amount, boolean overrideLore, List<Component> lore,
-                           @Nullable Component name, @Nullable String toolId, HeatBehavior heatBehavior,
+                           @Nullable Component name, @Nullable String toolId, @Nullable HeatBehavior heatBehavior,
                            @Nullable Double temperature) {
 
 
