@@ -55,12 +55,16 @@ public class RecipeProcedureEvaluator {
     private static boolean recipeApplicable(Pair<Recipe, Pair<Map<String, Double>, Integer>> recipePairPair) {
         Map<String, Double> scores = recipePairPair.second().first();
         Set<String> ignored = Set.of("heat", "ingredients");
-        return scores.entrySet().stream()
+        List<Double> scoreList = scores.entrySet().stream()
                 .filter(entry -> !ignored.contains(entry.getKey()))
                 .map(Map.Entry::getValue)
-                .anyMatch(
-                        value -> value > 0.3
-                );
+                .toList();
+        if (scoreList.isEmpty()) {
+            return scores.values().stream()
+                    .noneMatch(value -> value < 0.3);
+        } else {
+            return scoreList.stream().noneMatch(value -> value < 0.3);
+        }
     }
 
     private static Pair<Map<String, Double>, Integer> evaluateRecipe(Map<String, List<StructureStateChange>> change, List<ForgingItem> itemInput,

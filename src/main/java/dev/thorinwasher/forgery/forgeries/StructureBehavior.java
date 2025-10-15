@@ -153,25 +153,13 @@ public class StructureBehavior {
             if (hand == EquipmentSlot.OFF_HAND) {
                 return InteractionResult.DENY;
             }
-            if (lastEvaluated + EVALUATION_DELAY < TimeProvider.time()) {
-                updateRecipeOutput();
-            }
+            updateRecipeOutput();
             if (recipeOutput != null && forgeryInventory.typeName().equalsIgnoreCase(structure.metaValue(StructureMeta.OUTPUT_INVENTORY))) {
                 inventories.values().forEach(ForgeryInventory::clear);
                 if (!actor.getInventory().addItem(recipeOutput).isEmpty()) {
                     actor.getWorld().dropItemNaturally(actor.getLocation(), recipeOutput);
                 }
                 recipeOutput = null;
-                stateHistory.clear();
-                toolHistory.clear();
-                persistencyAccess.database().remove(
-                        persistencyAccess.structureStateStoredData(),
-                        new StructureStateStoredData.StructureStateData(this.uuid, null)
-                );
-                persistencyAccess.database().remove(
-                        persistencyAccess.toolInputStoredData(),
-                        new ToolInputStoredData.LinkedToolInput(this.uuid, null)
-                );
                 resetProcessStart();
                 modifiedInventories.add(forgeryInventory.typeName());
                 return InteractionResult.DENY;
@@ -217,6 +205,16 @@ public class StructureBehavior {
     }
 
     private void resetProcessStart() {
+        stateHistory.clear();
+        toolHistory.clear();
+        persistencyAccess.database().remove(
+                persistencyAccess.structureStateStoredData(),
+                new StructureStateStoredData.StructureStateData(this.uuid, null)
+        );
+        persistencyAccess.database().remove(
+                persistencyAccess.toolInputStoredData(),
+                new ToolInputStoredData.LinkedToolInput(this.uuid, null)
+        );
         processStart = -1;
         persistencyAccess.database().update(persistencyAccess.behaviorStoredData(), this);
     }
