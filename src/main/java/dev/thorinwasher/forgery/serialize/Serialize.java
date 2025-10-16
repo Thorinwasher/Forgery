@@ -8,14 +8,15 @@ import dev.thorinwasher.forgery.forging.ToolInput;
 import dev.thorinwasher.forgery.inventory.ForgingItem;
 import dev.thorinwasher.forgery.inventory.ForgingMaterial;
 import dev.thorinwasher.forgery.recipe.CraftingRecipe;
+import dev.thorinwasher.forgery.recipe.RecipeResult;
 import dev.thorinwasher.forgery.structure.BlockTransform;
 import dev.thorinwasher.forgery.structure.Condition;
-import dev.thorinwasher.forgery.structure.KeyedSerializer;
 import dev.thorinwasher.forgery.util.Duration;
 import dev.thorinwasher.forgery.util.ForgeryKey;
 import io.leangen.geantyref.TypeToken;
 import io.papermc.paper.registry.RegistryKey;
 import net.kyori.adventure.text.Component;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.block.BlockType;
 import org.bukkit.block.data.BlockData;
@@ -59,7 +60,9 @@ public class Serialize {
                 .register(Quaternionf.class, new QuaternionfSerializer())
                 .register(Component.class, new ComponentSerializer())
                 .register(CraftingRecipe.class, new CraftingRecipeSerializer())
-                .register(Sound.class, new SoundSerializer());
+                .register(Sound.class, new SoundSerializer())
+                .register(RecipeResult.class, new RecipeResultSerializer())
+                .register(NamespacedKey.class, new NamespacedKeySerializer());
     }
 
     public static <T> Optional<String> asJson(TypeToken<T> token, T value) {

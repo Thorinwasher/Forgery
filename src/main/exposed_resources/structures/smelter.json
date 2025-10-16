@@ -69,9 +69,9 @@
     "tool_input": {
       "bellows": {
         "interface-blocks": [
-          "minecraft:fire_place"
+          "minecraft:campfire"
         ],
-        "interact-sound": "entity.wind_charge.wind_burst"
+        "interact-sound": "minecraft:entity.parrot.imitate.wither_skeleton"
       }
     }
   }

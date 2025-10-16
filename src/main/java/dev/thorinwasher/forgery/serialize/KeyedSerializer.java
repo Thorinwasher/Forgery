@@ -1,4 +1,4 @@
-package dev.thorinwasher.forgery.structure;
+package dev.thorinwasher.forgery.serialize;
 
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;

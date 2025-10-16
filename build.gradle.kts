@@ -3,7 +3,7 @@ import org.gradle.kotlin.dsl.support.zipTo
 plugins {
     `java-library`
     id("xyz.jpenilla.run-paper") version "2.3.1"
-    id("de.eldoria.plugin-yml.bukkit") version "0.7.1"
+    id("de.eldoria.plugin-yml.paper") version "0.8.0"
     id("com.gradleup.shadow") version "8.3.7"
 }
 
@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.8-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.10-R0.1-SNAPSHOT")
 
     implementation("dev.thorinwasher.schem:schem-reader:1.0.0")
     implementation("com.zaxxer:HikariCP:6.3.0")
@@ -81,10 +81,12 @@ tasks {
     }
 }
 
-bukkit {
+paper {
+    name = project.name
+    version = project.version.toString()
+    description = "A forging plugin"
     main = "dev.thorinwasher.forgery.Forgery"
-    foliaSupported = false
+    bootstrapper = "dev.thorinwasher.forgery.ForgeryBootstrap"
     apiVersion = "1.21"
     authors = listOf("Thorinwasher")
-    name = rootProject.name
 }

@@ -195,8 +195,11 @@ public class RecipeProcedureEvaluator {
         double output = Math.pow(ingredientScore, 1D / ingredientAmount);
         Map<ForgeryKey, Integer> modifiedTarget = target.entrySet().stream()
                 .collect(Collectors.toMap(entry -> entry.getKey().key(), Map.Entry::getValue));
-        Map<ForgeryKey, Integer> modifiedActual = actual.entrySet().stream()
-                .collect(Collectors.toMap(entry -> entry.getKey().key(), Map.Entry::getValue));
+        Map<ForgeryKey, Integer> modifiedActual = new HashMap<>();
+        actual.forEach((material, amount) -> {
+            modifiedActual.computeIfAbsent(material.key(), ignored -> 0);
+            modifiedActual.compute(material.key(), (ignored, prevAmount) -> prevAmount + amount);
+        });
         if (modifiedTarget.size() != modifiedActual.size()) {
             return new Pair<>(0D, 1);
         }

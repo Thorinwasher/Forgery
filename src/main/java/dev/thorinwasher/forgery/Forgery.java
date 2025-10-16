@@ -3,20 +3,21 @@ package dev.thorinwasher.forgery;
 import com.google.common.base.Preconditions;
 import dev.thorinwasher.forgery.api.ForgeryApi;
 import dev.thorinwasher.forgery.command.ForgeryCommand;
+import dev.thorinwasher.forgery.configuration.ItemsConfig;
 import dev.thorinwasher.forgery.database.Database;
 import dev.thorinwasher.forgery.database.PersistencyAccess;
 import dev.thorinwasher.forgery.forgeries.StructureBehavior;
 import dev.thorinwasher.forgery.forging.ItemAdapter;
 import dev.thorinwasher.forgery.integration.IntegrationRegistry;
 import dev.thorinwasher.forgery.listener.BlockEventListener;
-import dev.thorinwasher.forgery.listener.CraftingListener;
 import dev.thorinwasher.forgery.listener.PlayerEventListener;
 import dev.thorinwasher.forgery.listener.WorldEventListener;
-import dev.thorinwasher.forgery.recipe.*;
-import dev.thorinwasher.forgery.serialize.RecipeResultSerializer;
+import dev.thorinwasher.forgery.recipe.CraftingRecipe;
+import dev.thorinwasher.forgery.recipe.HeatBehavior;
+import dev.thorinwasher.forgery.recipe.ItemReference;
+import dev.thorinwasher.forgery.recipe.Recipe;
 import dev.thorinwasher.forgery.serialize.Serialize;
 import dev.thorinwasher.forgery.structure.*;
-import dev.thorinwasher.forgery.util.ItemPresets;
 import io.leangen.geantyref.TypeFactory;
 import io.papermc.paper.plugin.lifecycle.event.types.LifecycleEvents;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
@@ -49,6 +50,7 @@ public class Forgery extends JavaPlugin {
     private Map<Key, ItemReference> itemReferences;
     private boolean loadSuccess = false;
     private Map<String, Recipe> recipes;
+    private ItemsConfig itemsConfig;
 
     @Override
     public void onLoad() {
@@ -76,7 +78,8 @@ public class Forgery extends JavaPlugin {
         itemReferences = database.find(persistencyAccess.itemStoredData(), null).join()
                 .stream()
                 .collect(Collectors.toMap(ItemReference::getKey, itemReference -> itemReference));
-        ItemPresets.saveAllIfNotExists(itemReferences, persistencyAccess);
+        this.itemsConfig = ItemsConfig.load(getDataFolder());
+        itemsConfig.insertIntoReferences(itemReferences);
         integrationRegistry.initialize(itemReferences);
         loadStructures();
         Bukkit.getGlobalRegionScheduler().runAtFixedRate(this, this::tickStructures, 1, 1);
@@ -97,7 +100,6 @@ public class Forgery extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new BlockEventListener(placedStructureRegistry, structureRegistry, persistencyAccess, itemAdapter, recipes), this);
         Bukkit.getPluginManager().registerEvents(new PlayerEventListener(placedStructureRegistry), this);
         Bukkit.getPluginManager().registerEvents(new WorldEventListener(persistencyAccess, placedStructureRegistry), this);
-        Bukkit.getPluginManager().registerEvents(new CraftingListener(itemAdapter), this);
         loadAndRegisterCraftingRecipes(itemAdapter);
         this.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, new ForgeryCommand(itemReferences, persistencyAccess, recipes, integrationRegistry)::register);
     }
@@ -177,10 +179,7 @@ public class Forgery extends JavaPlugin {
     private Map<String, Recipe> loadRecipes() {
         try {
             YamlConfigurationLoader loader = YamlConfigurationLoader.builder()
-                    .defaultOptions(opts -> opts.serializers(builder -> {
-                                Serialize.registerSerializers(builder);
-                                builder.register(RecipeResult.class, new RecipeResultSerializer());
-                            }
+                    .defaultOptions(opts -> opts.serializers(Serialize::registerSerializers
                     ))
                     .file(new File(getDataFolder(), "recipes.yml"))
                     .build();
@@ -193,10 +192,7 @@ public class Forgery extends JavaPlugin {
     private void loadAndRegisterCraftingRecipes(ItemAdapter itemAdapter) {
         try {
             YamlConfigurationLoader loader = YamlConfigurationLoader.builder()
-                    .defaultOptions(opts -> opts.serializers(builder -> {
-                                Serialize.registerSerializers(builder);
-                                builder.register(RecipeResult.class, new RecipeResultSerializer());
-                            }
+                    .defaultOptions(opts -> opts.serializers(Serialize::registerSerializers
                     ))
                     .file(new File(getDataFolder(), "crafting.yml"))
                     .build();
