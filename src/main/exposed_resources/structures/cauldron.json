@@ -19,12 +19,19 @@
     "output_inventory": "water_cooler",
     "inventory_transforms": [],
     "block_transforms": [],
-    "states": {},
+    "states": {
+      "cooling" : [
+        {
+          "not": {
+            "inventory_empty": "water_cooler"
+          }
+        }
+      ]
+    },
     "process_parameters": [
       "time",
       "ingredients",
       "target_inventory"
-    ],
-    "heat_result": 1200
+    ]
   }
 }
